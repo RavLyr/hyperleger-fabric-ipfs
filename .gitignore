@@ -1,0 +1,63 @@
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Editors and OS metadata
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+.cache/
+
+# Go build/test artifacts
+bin/
+*.test
+coverage.out
+fabric/chaincode-go/vendor/
+
+# Hyperledger Fabric generated chaincode packages
+chaincode-packages/
+*.tar.gz
+*.tgz
+
+# Hyperledger Fabric generated channel artifacts
+fabric/config/channel-conf/*.pb
+fabric/config/channel-conf/*.block
+fabric/config/channel-conf/*.tx
+
+# Hyperledger Fabric generated crypto, CA state, certificates, and private keys.
+# Keep these local or provision them from a secure secret store; do not push them.
+organization/
+crypto-config/
+organizations/
+wallet/
+connection-profile*.json
+
+# Fabric runtime state and ledgers if ever created under the repo
+ledger/
+ledgersData/
+production/
+snapshots/
+state/
+couchdb/
+
+# Fabric CA local databases and key material, even outside organization/
+fabric-ca-server.db
+IssuerSecretKey
+IssuerRevocationPrivateKey
+*_sk
+*.pem
+*.key
+*.crt
+*.cert
+
+# Docker override files often contain machine-specific paths or credentials
+docker-compose.override.yml
+docker-compose.override.yaml
