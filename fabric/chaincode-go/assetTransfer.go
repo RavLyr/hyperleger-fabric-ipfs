@@ -12,12 +12,12 @@ import (
 )
 
 func main() {
-	assetChaincode, err := contractapi.NewChaincode(&chaincode.SmartContract{})
+	certificateChaincode, err := contractapi.NewChaincode(&chaincode.SmartContract{})
 	if err != nil {
-		log.Panicf("Error creating asset-transfer-basic chaincode: %v", err)
+		log.Panicf("Error creating certificate lifecycle chaincode: %v", err)
 	}
 
-	if err := assetChaincode.Start(); err != nil {
-		log.Panicf("Error starting asset-transfer-basic chaincode: %v", err)
+	if err := certificateChaincode.Start(); err != nil {
+		log.Panicf("Error starting certificate lifecycle chaincode: %v", err)
 	}
 }
