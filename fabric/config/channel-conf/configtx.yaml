@@ -513,6 +513,7 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *Org1
+        - *Org2
 
   # SampleSingleMSPSolo defines a configuration which uses the Solo orderer,
   # and contains a single MSP definition (the MSP sampleconfig).
