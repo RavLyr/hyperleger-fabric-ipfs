@@ -77,6 +77,61 @@ For one service:
 docker compose logs -f peer1
 ```
 
+## Bootstrapping / Joining Channel (Fresh State)
+
+Jika data ledger pada host dihapus atau Anda memulai dari keadaan bersih (tanpa data di `/var/hyperledger/production`), ikuti langkah-langkah di bawah ini untuk menggabungkan Orderer dan Peer ke channel `appchannel-etcdraft` menggunakan Genesis Block (`genesis_block.pb`).
+
+### 1. Gabungkan Ordering Service Nodes (OSN) ke Channel
+
+Orderer menggunakan API osnadmin untuk join ke channel. Jalankan perintah berikut di CLI container:
+
+**Join OSN1:**
+```bash
+docker exec cli.example.com bash -c 'osnadmin channel join -c appchannel-etcdraft --config-block /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/genesis_block.pb -o osn1.example.com:9443 --ca-file /var/hyperledger/crypto/ca-deployments/fabric-ca-client/tls-ca/tlsadmin/msp/tlscacerts/tls-localhost-7054.pem --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY'
+```
+
+**Join OSN2:**
+```bash
+docker exec cli.example.com bash -c 'osnadmin channel join -c appchannel-etcdraft --config-block /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/genesis_block.pb -o osn2.example.com:9543 --ca-file /var/hyperledger/crypto/ca-deployments/fabric-ca-client/tls-ca/tlsadmin/msp/tlscacerts/tls-localhost-7054.pem --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY'
+```
+
+**Join OSN3:**
+```bash
+docker exec cli.example.com bash -c 'osnadmin channel join -c appchannel-etcdraft --config-block /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/genesis_block.pb -o osn3.example.com:9643 --ca-file /var/hyperledger/crypto/ca-deployments/fabric-ca-client/tls-ca/tlsadmin/msp/tlscacerts/tls-localhost-7054.pem --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY'
+```
+
+### 2. Gabungkan Peer ke Channel
+
+Gunakan peer CLI di dalam container CLI untuk menggabungkan kedua peer ke channel:
+
+**Join Peer 1 (Org1):**
+```bash
+docker exec cli.example.com bash -c '
+export CORE_PEER_LOCALMSPID=Org1MSP
+export CORE_PEER_ADDRESS=peer1org1.example.com:7051
+export CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp
+export CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem
+export CORE_PEER_TLS_ENABLED=true
+
+peer channel join -b /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/genesis_block.pb
+'
+```
+
+**Join Peer 2 (Org2):**
+```bash
+docker exec cli.example.com bash -c '
+export CORE_PEER_LOCALMSPID=Org2MSP
+export CORE_PEER_ADDRESS=peer2org2.example.com:8051
+export CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.ravly.com/msp
+export CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem
+export CORE_PEER_TLS_ENABLED=true
+
+peer channel join -b /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/genesis_block.pb
+'
+```
+
+---
+
 ## Peer CLI Checks
 
 Run from the workspace root:
@@ -142,3 +197,157 @@ docker network inspect fabric_migration_net
 ```
 
 If a ledger reset is ever needed, stop first and decide exactly which node ledger path to move aside. Do not delete `/var/hyperledger/production` automatically.
+
+## Deploy Chaincode Ijazah di Production
+
+Ikuti langkah-langkah berikut untuk menginstall, menyetujui (approve), dan melakukan commit chaincode `ijazah` setelah testing di local selesai.
+
+### 1. Install Chaincode Package pada Kedua Peer
+
+Jalankan perintah instalasi berikut di CLI container atau host dengan environment variable masing-masing organisasi.
+
+**Instalasi di Peer 1 (Org1):**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer lifecycle chaincode install /opt/chaincode-packages/ijazah.tar.gz
+```
+
+**Instalasi di Peer 2 (Org2):**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer2org2.example.com:8051 \
+  -e CORE_PEER_LOCALMSPID=Org2MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem \
+  cli.example.com peer lifecycle chaincode install /opt/chaincode-packages/ijazah.tar.gz
+```
+
+*Catatan: Setelah instalasi selesai, pastikan mencatat **Chaincode Package ID** yang dikembalikan. Contoh:*
+`ijazah_1.0:a83064808c9caacbbdf9cedd892d7da2b5af46ba728bafce3e3cdc0b3279a9f9`
+
+---
+
+### 2. Approve Chaincode Definition pada Setiap Organisasi
+
+Setiap organisasi harus menyetujui definisi chaincode menggunakan Package ID di atas.
+
+**Approval untuk Org1:**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer lifecycle chaincode approveformyorg \
+  -o osn1.example.com:7050 --ordererTLSHostnameOverride osn1.example.com \
+  --channelID appchannel-etcdraft --name ijazah --version 1.0 \
+  --package-id ijazah_1.0:a83064808c9caacbbdf9cedd892d7da2b5af46ba728bafce3e3cdc0b3279a9f9 \
+  --sequence 1 --tls --cafile /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem
+```
+
+**Approval untuk Org2:**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer2org2.example.com:8051 \
+  -e CORE_PEER_LOCALMSPID=Org2MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem \
+  cli.example.com peer lifecycle chaincode approveformyorg \
+  -o osn1.example.com:7050 --ordererTLSHostnameOverride osn1.example.com \
+  --channelID appchannel-etcdraft --name ijazah --version 1.0 \
+  --package-id ijazah_1.0:a83064808c9caacbbdf9cedd892d7da2b5af46ba728bafce3e3cdc0b3279a9f9 \
+  --sequence 1 --tls --cafile /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem
+```
+
+---
+
+### 3. Cek Kesiapan Commit (Commit Readiness)
+
+Gunakan perintah ini untuk memastikan kedua organisasi telah menyetujui definisi chaincode:
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer lifecycle chaincode checkcommitreadiness \
+  --channelID appchannel-etcdraft --name ijazah --version 1.0 --sequence 1 --tls \
+  --cafile /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem
+```
+
+---
+
+### 4. Commit Chaincode Definition ke Channel
+
+Setelah status readiness bernilai `true` untuk semua organisasi, jalankan perintah commit berikut:
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer lifecycle chaincode commit \
+  -o osn1.example.com:7050 --ordererTLSHostnameOverride osn1.example.com \
+  --channelID appchannel-etcdraft --name ijazah --version 1.0 --sequence 1 --tls \
+  --cafile /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem \
+  --peerAddresses peer1org1.example.com:7051 --tlsRootCertFiles /var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  --peerAddresses peer2org2.example.com:8051 --tlsRootCertFiles /var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem
+```
+
+---
+
+### 5. Verifikasi & Pengujian Chaincode (Query / Invoke)
+
+**Query Semua Sertifikat (Membuktikan container chaincode sudah running):**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer chaincode query -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:GetAllCertificates"]}'
+```
+
+**Inisialisasi Ledger (InitLedger jika dibutuhkan):**
+```bash
+docker exec -e CORE_PEER_ADDRESS=peer1org1.example.com:7051 \
+  -e CORE_PEER_LOCALMSPID=Org1MSP \
+  -e CORE_PEER_MSPCONFIGPATH=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=/var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  cli.example.com peer chaincode invoke \
+  -o osn1.example.com:7050 --ordererTLSHostnameOverride osn1.example.com \
+  --channelID appchannel-etcdraft --name ijazah -c '{"Args":["SmartContract:InitLedger"]}' --tls \
+  --cafile /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem \
+  --peerAddresses peer1org1.example.com:7051 --tlsRootCertFiles /var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem \
+  --peerAddresses peer2org2.example.com:8051 --tlsRootCertFiles /var/hyperledger/crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem
+```
+
+## Migrasi ke Server Lain (Production/Staging Server)
+
+Ketika memindahkan jaringan Hyperledger Fabric ini ke server baru, pastikan Anda memindahkan komponen-komponen krusial berikut agar sistem dapat berjalan tanpa kegagalan:
+
+### 1. Komponen yang Wajib Dipindahkan/Disalin:
+1. **Repository & Konfigurasi Docker:**
+   - Seluruh folder repository ini (termasuk `docker-compose.yaml`, `.env`, dan subfolder `fabric/config`).
+2. **Kriptografi & Sertifikat (`organization/`):**
+   - Folder `organization/` berisi seluruh aset kriptografi (MSP, TLS certificates, private keys, database CA, folder `ca-deployments`, dll). Ini **sangat krusial** karena memuat kunci privat (`_sk`) untuk semua identitas organisasi, admin, peer, dan orderer. Jika folder ini tertinggal, Anda tidak dapat mengontrol jaringan ini lagi.
+3. **Channel Conf (`fabric/config/channel-conf/`):**
+   - Folder ini memuat `genesis_block.pb` dan `configtx.yaml`.
+
+### 2. Opsi Penanganan Data Ledger (`/var/hyperledger/production`):
+* **Opsi A: Melanjutkan State Ledger Saat Ini (Resume State)**
+  - Salin seluruh direktori `/var/hyperledger/production` dari server lama ke lokasi yang sama di server baru.
+  - Saat kontainer dinyalakan (`docker compose up -d`), Peer dan Orderer akan membaca database lokal dari volume mount dan langsung melanjutkan sinkronisasi dari tinggi blok terakhir tanpa perlu join channel ulang.
+* **Opsi B: Memulai Jaringan Bersih (Reset State)**
+  - Biarkan folder `/var/hyperledger/production` di server baru dalam keadaan kosong/bersih.
+  - Setelah kontainer menyala, jalankan instruksi pada bagian **Bootstrapping / Joining Channel (Fresh State)** di atas untuk mendaftarkan ulang genesis block ke Orderer dan Peer.
+
+### 3. Konfigurasi Jaringan & Port Firewall:
+Pastikan port eksternal berikut diizinkan di firewall server baru jika diakses dari luar:
+- **CA Services:** `7054` (Org1 CA), `9054` (Org2 CA), `8054` (TLS CA).
+- **Orderer Nodes (gRPC/Operations/Admin):**
+  - OSN1: `7050`, `8543`, `9443`
+  - OSN2: `8050`, `8443`, `9543`
+  - OSN3: `9050`, `8643`, `9643`
+- **Peer Nodes (gRPC/Operations/Chaincode):**
+  - Peer1 (Org1): `7051`, `7052`, `9453`
+  - Peer2 (Org2): `8051`, `8052`, `9454`
+
+

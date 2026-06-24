@@ -1,0 +1,18 @@
+Organizations:
+  - &Org2
+    Name: Org2MSP
+    ID: Org2MSP
+    MSPDir: /var/hyperledger/crypto/peerOrganizations/org2.example.com/msp
+    Policies: &Org2Policies
+      Readers:
+        Type: Signature
+        Rule: "OR('Org2MSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('Org2MSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('Org2MSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('Org2MSP.member')"
