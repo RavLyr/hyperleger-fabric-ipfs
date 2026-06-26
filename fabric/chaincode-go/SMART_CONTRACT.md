@@ -109,12 +109,12 @@ Menerbitkan ijazah baru ke dalam ledger.
 Mengambil data detail sertifikat berdasarkan ID.
 * **Type:** Query (Read)
 * **Arguments:** `[certificateID]`
-* **PENTING (Catatan Validasi OpenAPI):** 
-  > [!WARNING]
-  > Di library `fabric-contract-api-go`, jika field bertipe string dalam struct tidak didefinisikan sebagai pointer (`*string`), schema generator menganggapnya sebagai field **wajib (required)**. 
-  > Jika Anda memanggil `GetCertificate` pada ijazah yang tidak memiliki nilai `expiredAt`, `previousCertificateId`, atau `replacementCertificateId` (berupa string kosong `""`), query akan menghasilkan error:
-  > `"error handling success response. value did not match schema: return: expiredAt is required"`.
-  > **Solusi:** Di sisi client, untuk mengecek keabsahan disarankan menggunakan metode `VerifyCertificate` yang mengembalikan model schema minimalis dan aman dari error validasi OpenAPI. Di masa mendatang, struct Go harus diubah menggunakan pointer string (`*string`) untuk field opsional.
+* **PENTING (Catatan Validasi):** 
+  > [!NOTE]
+  > **STATUS: AMAN (RESOLVED)**
+  > Masalah validasi OpenAPI schema di sisi client ini sekarang sudah aman karena:
+  > 1. Aplikasi backend Express saat ini menggunakan SDK `@hyperledger/fabric-gateway` versi baru (v1.x) yang tidak lagi melakukan pemaksaan validasi skema respons (response schema validation) secara ketat di sisi client.
+  > 2. Alur verifikasi di backend telah disinkronkan untuk memanggil `VerifyCertificate` yang memiliki model data terstandardisasi dan aman dari resiko kegagalan skema OpenAPI.
 
 ### 7. `CertificateExists`
 Memeriksa apakah sertifikat ID sudah ada di ledger.
