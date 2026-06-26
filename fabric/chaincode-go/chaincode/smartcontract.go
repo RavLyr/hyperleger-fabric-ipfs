@@ -40,9 +40,9 @@ type CertificateAsset struct {
 	IPFSCID                  string `json:"ipfsCid"`
 	Status                   string `json:"status"`
 	IssuedAt                 string `json:"issuedAt"`
-	ExpiredAt                string `json:"expiredAt,omitempty"`
-	PreviousCertificateID    string `json:"previousCertificateId,omitempty"`
-	ReplacementCertificateID string `json:"replacementCertificateId,omitempty"`
+	ExpiredAt                string `json:"expiredAt"`
+	PreviousCertificateID    string `json:"previousCertificateId"`
+	ReplacementCertificateID string `json:"replacementCertificateId"`
 	CreatedAt                string `json:"createdAt"`
 	UpdatedAt                string `json:"updatedAt"`
 }
