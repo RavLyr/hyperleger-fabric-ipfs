@@ -36,7 +36,7 @@ Merepresentasikan ijazah/sertifikat akademik mahasiswa.
   | `issuerId` | string | ID dari Issuer yang menerbitkan sertifikat. |
   | `certificateType` | string | Jenis jenjang (misal: `"Sarjana"`, `"Magister"`). |
   | `title` | string | Gelar akademik (misal: `"Sarjana Komputer"`). |
-  | `documentHash` | string | Hash SHA-256 berkas ijazah PDF asli (untuk verifikasi keaslian). |
+  | `documentHash` | string | Sidik jari keaslian dokumen. Pada implementasi terintegrasi, diisi menggunakan IPFS CID berkas untuk kemudahan verifikasi. |
   | `ipfsCid` | string | CID IPFS tempat menyimpan file ijazah terenkripsi. |
   | `status` | string | Status: `"ACTIVE"`, `"REVOKED"`, `"REISSUED"`, `"EXPIRED"`. |
   | `issuedAt` | string | Tanggal terbit sertifikat. |
@@ -194,6 +194,17 @@ Mendapatkan semua sertifikat (atau berdasarkan issuer).
 * **Type:** Query (Read)
 * **Arguments:** `[]` / `[issuerID]`
 * **PENTING:** Keduanya rentan terkena error OpenAPI schema validation jika terdapat sertifikat dengan field opsional kosong. Direkomendasikan untuk menonaktifkan response validation pada peer atau mendefinisikan field opsional sebagai pointer string pada smart contract.
+
+### 13. `ReissueCertificate`
+Menerbitkan sertifikat pengganti baru dari sertifikat lama yang aktif (mengubah status sertifikat lama menjadi `REISSUED` dan mengaitkannya dengan sertifikat pengganti yang baru).
+* **Type:** Invoke (Write)
+* **Arguments:** `[oldCertificateID, newCertificateID, newCertificateNumber, newDocumentHash, newIpfsCid, reasonHash, reissuedAt]`
+* **Access Control:** Hanya bisa dipanggil oleh organisasi pemilik `issuerID` dari sertifikat tersebut.
+* **Events Emitted:** `CertificateReissued` (mengembalikan payload JSON `ReissueRecord`).
+* **Contoh Command:**
+  ```bash
+  peer chaincode invoke -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:ReissueCertificate", "cert01", "cert02", "123457", "new_ipfs_cid", "new_ipfs_cid", "reason_hash", "2026-06-25"]}' ...
+  ```
 
 ---
 
