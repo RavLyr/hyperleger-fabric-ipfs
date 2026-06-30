@@ -36,7 +36,6 @@ type CertificateAsset struct {
 	IssuerID                 string `json:"issuerId"`
 	CertificateType          string `json:"certificateType"`
 	Title                    string `json:"title"`
-	DocumentHash             string `json:"documentHash"`
 	IPFSCID                  string `json:"ipfsCid"`
 	Status                   string `json:"status"`
 	IssuedAt                 string `json:"issuedAt"`
@@ -215,7 +214,7 @@ func (s *SmartContract) IssuerExists(ctx contractapi.TransactionContextInterface
 	return issuerJSON != nil, nil
 }
 
-func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certificateID, certificateNumber, studentIDHash, issuerID, certificateType, title, documentHash, ipfsCid, issuedAt, expiredAt string) error {
+func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInterface, certificateID, certificateNumber, studentIDHash, issuerID, certificateType, title, ipfsCid, issuedAt, expiredAt string) error {
 	if err := requireNonEmpty(map[string]string{
 		"certificateID":     certificateID,
 		"certificateNumber": certificateNumber,
@@ -223,7 +222,6 @@ func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInter
 		"issuerID":          issuerID,
 		"certificateType":   certificateType,
 		"title":             title,
-		"documentHash":      documentHash,
 		"ipfsCid":           ipfsCid,
 		"issuedAt":          issuedAt,
 	}); err != nil {
@@ -262,7 +260,6 @@ func (s *SmartContract) IssueCertificate(ctx contractapi.TransactionContextInter
 		IssuerID:          issuerID,
 		CertificateType:   certificateType,
 		Title:             title,
-		DocumentHash:      documentHash,
 		IPFSCID:           ipfsCid,
 		Status:            statusActive,
 		IssuedAt:          issuedAt,
@@ -312,7 +309,7 @@ func (s *SmartContract) CertificateExists(ctx contractapi.TransactionContextInte
 	return certificateJSON != nil, nil
 }
 
-func (s *SmartContract) VerifyCertificate(ctx contractapi.TransactionContextInterface, certificateID, documentHash string) (*VerificationResult, error) {
+func (s *SmartContract) VerifyCertificate(ctx contractapi.TransactionContextInterface, certificateID, ipfsCid string) (*VerificationResult, error) {
 	if err := requireNonEmpty(map[string]string{"certificateID": certificateID}); err != nil {
 		return nil, err
 	}
@@ -342,9 +339,9 @@ func (s *SmartContract) VerifyCertificate(ctx contractapi.TransactionContextInte
 	result.IssuedAt = certificate.IssuedAt
 	result.Revoked = certificate.Status == statusRevoked
 
-	if strings.TrimSpace(documentHash) != "" && documentHash != certificate.DocumentHash {
+	if strings.TrimSpace(ipfsCid) != "" && ipfsCid != certificate.IPFSCID {
 		result.Tampered = true
-		result.Message = "document hash does not match certificate record"
+		result.Message = "IPFS CID does not match certificate record"
 		return result, nil
 	}
 
@@ -451,12 +448,11 @@ func (s *SmartContract) GetRevocationInfo(ctx contractapi.TransactionContextInte
 	return &record, nil
 }
 
-func (s *SmartContract) ReissueCertificate(ctx contractapi.TransactionContextInterface, oldCertificateID, newCertificateID, newCertificateNumber, newDocumentHash, newIpfsCid, reasonHash, reissuedAt string) error {
+func (s *SmartContract) ReissueCertificate(ctx contractapi.TransactionContextInterface, oldCertificateID, newCertificateID, newCertificateNumber, newIpfsCid, reasonHash, reissuedAt string) error {
 	if err := requireNonEmpty(map[string]string{
 		"oldCertificateID":     oldCertificateID,
 		"newCertificateID":     newCertificateID,
 		"newCertificateNumber": newCertificateNumber,
-		"newDocumentHash":      newDocumentHash,
 		"newIpfsCid":           newIpfsCid,
 		"reasonHash":           reasonHash,
 		"reissuedAt":           reissuedAt,
@@ -501,7 +497,6 @@ func (s *SmartContract) ReissueCertificate(ctx contractapi.TransactionContextInt
 		IssuerID:              oldCertificate.IssuerID,
 		CertificateType:       oldCertificate.CertificateType,
 		Title:                 oldCertificate.Title,
-		DocumentHash:          newDocumentHash,
 		IPFSCID:               newIpfsCid,
 		Status:                statusActive,
 		IssuedAt:              reissuedAt,
@@ -572,7 +567,46 @@ func (s *SmartContract) GetCertificateHistory(ctx contractapi.TransactionContext
 	return history, nil
 }
 
-func (s *SmartContract) GetAllCertificates(ctx contractapi.TransactionContextInterface) ([]*CertificateAsset, error) {
+func (s *SmartContract) GetAllCertificates(ctx contractapi.TransactionContextInterface) (string, error) {
+	certificates, err := s.getAllCertificateAssets(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	certificatesJSON, err := json.Marshal(certificates)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal certificates: %w", err)
+	}
+
+	return string(certificatesJSON), nil
+}
+
+func (s *SmartContract) GetCertificatesByIssuer(ctx contractapi.TransactionContextInterface, issuerID string) (string, error) {
+	if err := requireNonEmpty(map[string]string{"issuerID": issuerID}); err != nil {
+		return "", err
+	}
+
+	certificates, err := s.getAllCertificateAssets(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	var filtered []*CertificateAsset
+	for _, certificate := range certificates {
+		if certificate.IssuerID == issuerID {
+			filtered = append(filtered, certificate)
+		}
+	}
+
+	filteredJSON, err := json.Marshal(filtered)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal certificates for issuer %s: %w", issuerID, err)
+	}
+
+	return string(filteredJSON), nil
+}
+
+func (s *SmartContract) getAllCertificateAssets(ctx contractapi.TransactionContextInterface) ([]*CertificateAsset, error) {
 	iterator, err := ctx.GetStub().GetStateByRange("CERT_", "CERT_~")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get certificate range: %w", err)
@@ -596,26 +630,6 @@ func (s *SmartContract) GetAllCertificates(ctx contractapi.TransactionContextInt
 	}
 
 	return certificates, nil
-}
-
-func (s *SmartContract) GetCertificatesByIssuer(ctx contractapi.TransactionContextInterface, issuerID string) ([]*CertificateAsset, error) {
-	if err := requireNonEmpty(map[string]string{"issuerID": issuerID}); err != nil {
-		return nil, err
-	}
-
-	certificates, err := s.GetAllCertificates(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var filtered []*CertificateAsset
-	for _, certificate := range certificates {
-		if certificate.IssuerID == issuerID {
-			filtered = append(filtered, certificate)
-		}
-	}
-
-	return filtered, nil
 }
 
 func requireNonEmpty(fields map[string]string) error {

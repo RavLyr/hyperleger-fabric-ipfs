@@ -36,8 +36,7 @@ Merepresentasikan ijazah/sertifikat akademik mahasiswa.
   | `issuerId` | string | ID dari Issuer yang menerbitkan sertifikat. |
   | `certificateType` | string | Jenis jenjang (misal: `"Sarjana"`, `"Magister"`). |
   | `title` | string | Gelar akademik (misal: `"Sarjana Komputer"`). |
-  | `documentHash` | string | Sidik jari keaslian dokumen. Pada implementasi terintegrasi, diisi menggunakan IPFS CID berkas untuk kemudahan verifikasi. |
-  | `ipfsCid` | string | CID IPFS tempat menyimpan file ijazah terenkripsi. |
+  | `ipfsCid` | string | CID IPFS dokumen ijazah. Nilai ini menjadi satu-satunya fingerprint dokumen. |
   | `status` | string | Status: `"ACTIVE"`, `"REVOKED"`, `"REISSUED"`, `"EXPIRED"`. |
   | `issuedAt` | string | Tanggal terbit sertifikat. |
   | `expiredAt` | string (optional) | Tanggal kadaluarsa (jika ada). |
@@ -61,7 +60,7 @@ Mencatat informasi ketika sebuah ijazah dicabut/dibatalkan.
 
 ---
 
-## 2. API Methods Reference (Selain Reissue)
+## 2. API Methods Reference
 
 ### 1. `InitLedger`
 Menginisialisasi ledger state awal (biasanya untuk testing/seed data).
@@ -97,12 +96,12 @@ Memeriksa apakah issuer ID sudah terdaftar di ledger.
 ### 5. `IssueCertificate`
 Menerbitkan ijazah baru ke dalam ledger.
 * **Type:** Invoke (Write)
-* **Arguments:** `[certificateID, certificateNumber, studentIDHash, issuerID, certificateType, title, documentHash, ipfsCid, issuedAt, expiredAt]`
+* **Arguments:** `[certificateID, certificateNumber, studentIDHash, issuerID, certificateType, title, ipfsCid, issuedAt, expiredAt]`
 * **Access Control:** Client caller MSP ID harus sama dengan `mspId` dari `issuerID` yang bersangkutan.
 * **Events Emitted:** `CertificateIssued` (mengembalikan payload JSON `CertificateAsset`).
 * **Contoh Command:**
   ```bash
-  peer chaincode invoke -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:IssueCertificate", "cert01", "123456", "stud_hash_abc", "issuer01", "Sarjana", "Sarjana Komputer", "doc_hash_xyz", "ipfs_cid_123", "2026-06-24", ""]}' ...
+  peer chaincode invoke -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:IssueCertificate", "cert01", "123456", "stud_hash_abc", "issuer01", "Sarjana", "Sarjana Komputer", "ipfs_cid_123", "2026-06-24", ""]}' ...
   ```
 
 ### 6. `GetCertificate`
@@ -123,9 +122,9 @@ Memeriksa apakah sertifikat ID sudah ada di ledger.
 * **Returns:** boolean (`true`/`false`)
 
 ### 8. `VerifyCertificate`
-Melakukan verifikasi keabsahan ijazah berdasarkan ID sertifikat dan opsional dokumen hash (SHA-256 PDF asli).
+Melakukan verifikasi keabsahan ijazah berdasarkan ID sertifikat dan opsional IPFS CID.
 * **Type:** Query (Read)
-* **Arguments:** `[certificateID, documentHash]`
+* **Arguments:** `[certificateID, ipfsCid]`
 * **Returns:** `VerificationResult`
 * **Contoh Output Sukses:**
   ```json
@@ -141,7 +140,7 @@ Melakukan verifikasi keabsahan ijazah berdasarkan ID sertifikat dan opsional dok
     "tampered": false
   }
   ```
-* **Contoh Output Tampered (Hash Berkas Berbeda):**
+* **Contoh Output Tampered (CID Berbeda):**
   ```json
   {
     "certificateId": "cert01",
@@ -149,7 +148,7 @@ Melakukan verifikasi keabsahan ijazah berdasarkan ID sertifikat dan opsional dok
     "status": "ACTIVE",
     "issuerId": "issuer01",
     "certificateType": "Sarjana",
-    "message": "document hash does not match certificate record",
+    "message": "IPFS CID does not match certificate record",
     "issuedAt": "2026-06-24",
     "revoked": false,
     "tampered": true
@@ -193,18 +192,31 @@ Mendapatkan riwayat audit trail (audit log) lengkap dari perubahan suatu ijazah 
 Mendapatkan semua sertifikat (atau berdasarkan issuer).
 * **Type:** Query (Read)
 * **Arguments:** `[]` / `[issuerID]`
-* **PENTING:** Keduanya rentan terkena error OpenAPI schema validation jika terdapat sertifikat dengan field opsional kosong. Direkomendasikan untuk menonaktifkan response validation pada peer atau mendefinisikan field opsional sebagai pointer string pada smart contract.
+* **Returns:** JSON string berisi array `CertificateAsset`. Backend `fabric-result.ts` akan men-decode string JSON ini menjadi array JavaScript.
+* **Catatan:** Return type dibuat string untuk menghindari masalah schema validation Fabric contract API pada array struct dengan field opsional kosong.
 
 ### 13. `ReissueCertificate`
 Menerbitkan sertifikat pengganti baru dari sertifikat lama yang aktif (mengubah status sertifikat lama menjadi `REISSUED` dan mengaitkannya dengan sertifikat pengganti yang baru).
 * **Type:** Invoke (Write)
-* **Arguments:** `[oldCertificateID, newCertificateID, newCertificateNumber, newDocumentHash, newIpfsCid, reasonHash, reissuedAt]`
+* **Arguments:** `[oldCertificateID, newCertificateID, newCertificateNumber, newIpfsCid, reasonHash, reissuedAt]`
 * **Access Control:** Hanya bisa dipanggil oleh organisasi pemilik `issuerID` dari sertifikat tersebut.
 * **Events Emitted:** `CertificateReissued` (mengembalikan payload JSON `ReissueRecord`).
 * **Contoh Command:**
   ```bash
-  peer chaincode invoke -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:ReissueCertificate", "cert01", "cert02", "123457", "new_ipfs_cid", "new_ipfs_cid", "reason_hash", "2026-06-25"]}' ...
+  peer chaincode invoke -C appchannel-etcdraft -n ijazah -c '{"Args":["SmartContract:ReissueCertificate", "cert01", "cert02", "123457", "new_ipfs_cid", "reason_hash", "2026-06-25"]}' ...
   ```
+
+
+## Current Runtime Definition
+
+Pada runtime lokal terakhir yang sudah diverifikasi:
+
+* Channel: `appchannel-etcdraft`
+* Chaincode name: `ijazah`
+* Committed version: `4.0`
+* Committed sequence: `5`
+* Endorsement policy: `OR('Org1MSP.peer','Org2MSP.peer')`
+* Document fingerprint: hanya `ipfsCid`, tanpa `documentHash` di API contract.
 
 ---
 

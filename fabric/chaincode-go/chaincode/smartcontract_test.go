@@ -116,7 +116,7 @@ func TestIssueCertificateSuccess(t *testing.T) {
 	err := contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP")
 	require.NoError(t, err)
 
-	err = contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", "")
+	err = contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", "")
 	require.NoError(t, err)
 
 	certificate := getCertificateFromState(t, state, "CERT_1")
@@ -134,7 +134,7 @@ func TestIssueCertificateFailsIfIssuerMissing(t *testing.T) {
 	ctx, _, _ := newTestContext()
 	contract := chaincode.SmartContract{}
 
-	err := contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "MISSING_ISSUER", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", "")
+	err := contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "MISSING_ISSUER", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", "")
 	require.EqualError(t, err, "issuer MISSING_ISSUER does not exist")
 }
 
@@ -142,33 +142,33 @@ func TestVerifyValidCertificate(t *testing.T) {
 	ctx, _, _ := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 
-	result, err := contract.VerifyCertificate(ctx, "CERT_1", "doc-hash")
+	result, err := contract.VerifyCertificate(ctx, "CERT_1", "ipfs-cid")
 	require.NoError(t, err)
 	require.True(t, result.Valid)
 	require.False(t, result.Tampered)
 	require.Equal(t, "certificate is valid", result.Message)
 }
 
-func TestVerifyFailsIfDocumentHashDiffers(t *testing.T) {
+func TestVerifyFailsIfIPFSCIDDiffers(t *testing.T) {
 	ctx, _, _ := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 
-	result, err := contract.VerifyCertificate(ctx, "CERT_1", "changed-doc-hash")
+	result, err := contract.VerifyCertificate(ctx, "CERT_1", "changed-ipfs-cid")
 	require.NoError(t, err)
 	require.False(t, result.Valid)
 	require.True(t, result.Tampered)
-	require.Equal(t, "document hash does not match certificate record", result.Message)
+	require.Equal(t, "IPFS CID does not match certificate record", result.Message)
 }
 
 func TestRevokeCertificate(t *testing.T) {
 	ctx, stub, state := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 
 	err := contract.RevokeCertificate(ctx, "CERT_1", "reason-hash", "2026-02-01T00:00:00Z")
 	require.NoError(t, err)
@@ -190,10 +190,10 @@ func TestVerifyRevokedCertificateInvalid(t *testing.T) {
 	ctx, _, _ := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 	require.NoError(t, contract.RevokeCertificate(ctx, "CERT_1", "reason-hash", "2026-02-01T00:00:00Z"))
 
-	result, err := contract.VerifyCertificate(ctx, "CERT_1", "doc-hash")
+	result, err := contract.VerifyCertificate(ctx, "CERT_1", "ipfs-cid")
 	require.NoError(t, err)
 	require.False(t, result.Valid)
 	require.True(t, result.Revoked)
@@ -204,9 +204,9 @@ func TestReissueCertificate(t *testing.T) {
 	ctx, stub, state := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 
-	err := contract.ReissueCertificate(ctx, "CERT_1", "CERT_2", "CERT-NO-2", "new-doc-hash", "new-ipfs-cid", "reason-hash", "2026-03-01T00:00:00Z")
+	err := contract.ReissueCertificate(ctx, "CERT_1", "CERT_2", "CERT-NO-2", "new-ipfs-cid", "reason-hash", "2026-03-01T00:00:00Z")
 	require.NoError(t, err)
 
 	oldCertificate := getCertificateFromState(t, state, "CERT_1")
@@ -217,7 +217,7 @@ func TestReissueCertificate(t *testing.T) {
 	require.Equal(t, "ACTIVE", newCertificate.Status)
 	require.Equal(t, "CERT_1", newCertificate.PreviousCertificateID)
 	require.Equal(t, oldCertificate.StudentIDHash, newCertificate.StudentIDHash)
-	require.Equal(t, "new-doc-hash", newCertificate.DocumentHash)
+	require.Equal(t, "new-ipfs-cid", newCertificate.IPFSCID)
 
 	var reissue chaincode.ReissueRecord
 	err = json.Unmarshal(state["REISSUE_CERT_1_CERT_2"], &reissue)
@@ -233,7 +233,7 @@ func TestGetAllCertificates(t *testing.T) {
 	ctx, stub, state := newTestContext()
 	contract := chaincode.SmartContract{}
 	require.NoError(t, contract.RegisterIssuer(ctx, "ISSUER_1", "Example University", "Registrar", "Org1MSP"))
-	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "doc-hash", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
+	require.NoError(t, contract.IssueCertificate(ctx, "CERT_1", "CERT-NO-1", "student-hash", "ISSUER_1", "DIPLOMA", "Bachelor Degree", "ipfs-cid", "2026-01-01T00:00:00Z", ""))
 
 	stub.GetStateByRangeCalls(func(startKey, endKey string) (shim.StateQueryIteratorInterface, error) {
 		var values [][]byte
@@ -262,8 +262,11 @@ func TestGetAllCertificates(t *testing.T) {
 		return iterator, nil
 	})
 
-	certificates, err := contract.GetAllCertificates(ctx)
+	certificatesJSON, err := contract.GetAllCertificates(ctx)
 	require.NoError(t, err)
+
+	var certificates []chaincode.CertificateAsset
+	require.NoError(t, json.Unmarshal([]byte(certificatesJSON), &certificates))
 	require.Len(t, certificates, 1)
 	require.Equal(t, "CERT_1", certificates[0].CertificateID)
 }
