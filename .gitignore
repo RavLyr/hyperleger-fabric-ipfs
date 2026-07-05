@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!apps/*/.env.example
 
 # Editors and OS metadata
 .DS_Store
@@ -16,11 +17,19 @@ tmp/
 temp/
 .cache/
 
+# Node.js and frontend/backend build output
+node_modules/
+.next/
+dist/
+build/
+apps/api/fabric-crypto/
+apps/web/lib/generated/
+
 # Go build/test artifacts
 bin/
 *.test
 coverage.out
-fabric/chaincode-go/vendor/
+chaincode/basic/vendor/
 
 # Hyperledger Fabric generated chaincode packages
 chaincode-packages/
@@ -36,6 +45,7 @@ fabric/config/channel-conf/*.tx
 # Keep these local or provision them from a secure secret store; do not push them.
 organization/
 crypto-config/
+channel-artifacts/
 organizations/
 wallet/
 connection-profile*.json
@@ -61,3 +71,14 @@ IssuerRevocationPrivateKey
 # Docker override files often contain machine-specific paths or credentials
 docker-compose.override.yml
 docker-compose.override.yaml
+
+# Monorepo generated artifacts
+fabric/organizations
+fabric/channel-artifacts
+fabric/crypto-config
+chaincode/**/node_modules
+chaincode/**/dist
+chaincode/**/build
+packages/**/node_modules
+packages/**/dist
+packages/**/build

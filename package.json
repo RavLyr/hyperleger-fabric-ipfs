@@ -1,0 +1,13 @@
+{
+  "name": "ipfs-hyperledger",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "build:web": "pnpm --dir apps/web build",
+    "start:web": "pnpm --dir apps/web start",
+    "dev:api": "pnpm --dir apps/api dev",
+    "build:api": "pnpm --dir apps/api build",
+    "start:api": "pnpm --dir apps/api start"
+  }
+}
