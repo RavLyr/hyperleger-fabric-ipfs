@@ -24,7 +24,7 @@ x-orderer-env: &orderer-env
 x-orderer-common: &orderer-common
   image: hyperledger/fabric-orderer:${FABRIC_VERSION}
   volumes:
-    - ./organization:/var/hyperledger/crypto:ro
+    - ../../organization:/var/hyperledger/crypto:ro
   networks:
     fabric:
 
@@ -50,7 +50,7 @@ services:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./organization/ca-deployments/fabric-ca-server-org1:/etc/hyperledger/fabric-ca-server
+      - ../../organization/ca-deployments/fabric-ca-server-org1:/etc/hyperledger/fabric-ca-server
     networks:
       fabric:
         aliases:
@@ -69,9 +69,9 @@ services:
       - "9054:9054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ./organization/ca-deployments/org2-ca-server:/etc/hyperledger/fabric-ca-server
-      - ./organization/ordererOrganizations:/etc/hyperledger/fabric-ca-server/ordererOrganizations
-      - ./organization:/etc/hyperledger/peerOrganization
+      - ../../organization/ca-deployments/org2-ca-server:/etc/hyperledger/fabric-ca-server
+      - ../../organization/ordererOrganizations:/etc/hyperledger/fabric-ca-server/ordererOrganizations
+      - ../../organization:/etc/hyperledger/peerOrganization
     networks:
       fabric:
         aliases:
@@ -93,7 +93,7 @@ services:
     command: sh -c 'fabric-ca-server start -b tlsadmin:tlsadminpw -d'
     volumes:
       # Data disimpan terpisah namun tetap dalam cluster ca-deployments lu
-      - ./organization/ca-deployments/fabric-ca-server-tls:/etc/hyperledger/fabric-ca-server
+      - ../../organization/ca-deployments/fabric-ca-server-tls:/etc/hyperledger/fabric-ca-server
     networks:
       fabric:
         aliases:
@@ -115,8 +115,8 @@ services:
       ORDERER_GENERAL_TLS_ROOTCAS: "[/var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem]"
       ORDERER_FILELEDGER_LOCATION: /var/hyperledger/production/orderer/osno
     volumes:
-      - ./fabric/config/orderer-config/osnorg1/osn0:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/orderer-config/osnorg1/osn0:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - /var/hyperledger/production/orderer/osno:/var/hyperledger/production/orderer/osno
       - /var/hyperledger/production/orderer/etcdraft/wal/org1/osn0:/var/hyperledger/production/orderer/etcdraft/wal/org1/osn0
       - /var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn0:/var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn0
@@ -145,8 +145,8 @@ services:
       ORDERER_GENERAL_TLS_ROOTCAS: "[/var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn2.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem]"
       ORDERER_FILELEDGER_LOCATION: /var/hyperledger/production/orderer/osn1
     volumes:
-      - ./fabric/config/orderer-config/osnorg1/osn1:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/orderer-config/osnorg1/osn1:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - /var/hyperledger/production/orderer/osn1:/var/hyperledger/production/orderer/osn1
       - /var/hyperledger/production/orderer/etcdraft/wal/org1/osn1:/var/hyperledger/production/orderer/etcdraft/wal/org1/osn1
       - /var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn1:/var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn1
@@ -175,8 +175,8 @@ services:
       ORDERER_GENERAL_TLS_ROOTCAS: "[/var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn3.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem]"
       ORDERER_FILELEDGER_LOCATION: /var/hyperledger/production/orderer/osn2
     volumes:
-      - ./fabric/config/orderer-config/osnorg1/osn2:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/orderer-config/osnorg1/osn2:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - /var/hyperledger/production/orderer/osn2:/var/hyperledger/production/orderer/osn2
       - /var/hyperledger/production/orderer/etcdraft/wal/org1/osn3:/var/hyperledger/production/orderer/etcdraft/wal/org1/osn3
       - /var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn3:/var/hyperledger/production/orderer/etcdraft/snapshot/org1/osn3
@@ -221,8 +221,8 @@ services:
       # Docker network as the peer so chaincode can connect to peer1org1.example.com:7052.
       CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE: fabric_migration_net
     volumes:
-      - ./fabric/config/peers/org1peer/peer0:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/peers/org1peer/peer0:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - /var/hyperledger/production/org1/peer0:/var/hyperledger/production/org1/peer0
       - /var/hyperledger/production/snapshots/org1/peer0:/var/hyperledger/production/snapshots/org1/peer0
       - /var/run/docker.sock:/var/run/docker.sock
@@ -270,8 +270,8 @@ services:
       # Docker network as the peer so chaincode can connect to peer2org2.example.com:7052.
       CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE: fabric_migration_net
     volumes:
-      - ./fabric/config/peers/org2peer/peer2:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/peers/org2peer/peer2:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - /var/hyperledger/production/org2/peer2:/var/hyperledger/production/org2/peer2
       - /var/hyperledger/production/snapshots/org2/peer2:/var/hyperledger/production/snapshots/org2/peer2
       - /var/run/docker.sock:/var/run/docker.sock
@@ -303,11 +303,11 @@ services:
       CORE_PEER_MSPCONFIGPATH: /var/hyperledger/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp
       ORDERER_CA: /var/hyperledger/crypto/ordererOrganizations/ordererOrg1.example.com/ordering-service-nodes/osn1.ordererOrg1.example.com/tls/cacerts/localhost-7054.pem
     volumes:
-      - ./fabric/config/peers/org1peer/peer0:/etc/hyperledger/fabric:ro
-      - ./organization:/var/hyperledger/crypto:ro
+      - ../config/peers/org1peer/peer0:/etc/hyperledger/fabric:ro
+      - ../../organization:/var/hyperledger/crypto:ro
       - ./fabric/chaincode-go:/opt/gopath/src/chaincode/chaincode-go:ro
       - ./chaincode-packages:/opt/chaincode-packages
-      - ./fabric/config/channel-conf/:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      - ../config/channel-conf/:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
     networks:
       fabric:
         aliases:
