@@ -71,3 +71,14 @@ IssuerRevocationPrivateKey
 # Docker override files often contain machine-specific paths or credentials
 docker-compose.override.yml
 docker-compose.override.yaml
+
+# Monorepo generated artifacts
+fabric/organizations
+fabric/channel-artifacts
+fabric/crypto-config
+chaincode/**/node_modules
+chaincode/**/dist
+chaincode/**/build
+packages/**/node_modules
+packages/**/dist
+packages/**/build

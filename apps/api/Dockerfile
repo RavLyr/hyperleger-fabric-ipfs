@@ -13,13 +13,18 @@ FROM base AS build
 # Native deps (pkcs11js, bcrypt) need node-gyp build tools
 RUN apk add --no-cache python3 make g++
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-RUN pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/.npmrc ./apps/api/
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/shared/package.json ./packages/shared/package.json
 
-COPY prisma ./prisma
-COPY tsconfig.json ./
-COPY src ./src
+RUN pnpm install --filter ipfs-hyperledger-backend... --frozen-lockfile
 
+COPY apps/api/prisma ./apps/api/prisma
+COPY apps/api/tsconfig.json ./apps/api/
+COPY apps/api/src ./apps/api/src
+
+WORKDIR /app/apps/api
 RUN pnpm prisma generate
 RUN pnpm build
 
@@ -28,15 +33,13 @@ FROM base AS runtime
 
 ENV NODE_ENV=production
 
-# Copy built node_modules directly (includes generated Prisma client and engine)
 COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY apps/api/prisma ./apps/api/prisma
+COPY apps/api/package.json ./apps/api/
+COPY --from=build /app/apps/api/dist ./apps/api/dist
 
-# Prisma schema (needed by prisma migrate deploy in the migrate service)
-COPY prisma ./prisma
-COPY package.json ./
-
-# Compiled JS output
-COPY --from=build /app/dist ./dist
+WORKDIR /app/apps/api
 
 # Security: run as non-root user
 USER node

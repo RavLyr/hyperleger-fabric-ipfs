@@ -23,10 +23,20 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "identifier": { "type": "string", "description": "Username, Email, atau Issuer ID", "example": "admin" },
-                  "password": { "type": "string", "example": "admin123" }
+                  "identifier": {
+                    "type": "string",
+                    "description": "Username, Email, atau Issuer ID",
+                    "example": "admin"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "admin123"
+                  }
                 },
-                "required": ["identifier", "password"]
+                "required": [
+                  "identifier",
+                  "password"
+                ]
               }
             }
           }
@@ -39,22 +49,44 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "accessToken": { "type": "string", "example": "eyJhbG..." },
+                        "accessToken": {
+                          "type": "string",
+                          "example": "eyJhbG..."
+                        },
                         "issuer": {
                           "type": "object",
                           "properties": {
-                            "issuerId": { "type": "string" },
-                            "organizationName": { "type": "string" },
-                            "departmentName": { "type": "string" },
-                            "mspId": { "type": "string" },
-                            "username": { "type": "string" },
-                            "email": { "type": "string" },
-                            "isActive": { "type": "boolean" },
-                            "status": { "type": "string" }
+                            "issuerId": {
+                              "type": "string"
+                            },
+                            "organizationName": {
+                              "type": "string"
+                            },
+                            "departmentName": {
+                              "type": "string"
+                            },
+                            "mspId": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "isActive": {
+                              "type": "boolean"
+                            },
+                            "status": {
+                              "type": "string"
+                            }
                           }
                         }
                       }
@@ -78,15 +110,44 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "issuerId": { "type": "string", "example": "NEW_ISSUER" },
-                  "organizationName": { "type": "string", "example": "New University" },
-                  "departmentName": { "type": "string", "example": "Academic Office" },
-                  "mspId": { "type": "string", "example": "Org1MSP" },
-                  "username": { "type": "string", "example": "newadmin" },
-                  "email": { "type": "string", "example": "admin@new.ac.id" },
-                  "password": { "type": "string", "example": "securepass" }
+                  "issuerId": {
+                    "type": "string",
+                    "example": "NEW_ISSUER"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "example": "New University"
+                  },
+                  "departmentName": {
+                    "type": "string",
+                    "example": "Academic Office"
+                  },
+                  "mspId": {
+                    "type": "string",
+                    "example": "Org1MSP"
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "newadmin"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "admin@new.ac.id"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "securepass"
+                  }
                 },
-                "required": ["issuerId", "organizationName", "departmentName", "mspId", "username", "email", "password"]
+                "required": [
+                  "issuerId",
+                  "organizationName",
+                  "departmentName",
+                  "mspId",
+                  "username",
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -99,8 +160,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Issuer registered successfully" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Issuer registered successfully"
+                    }
                   }
                 }
               }
@@ -121,9 +188,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "ok" },
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Server is running" }
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Server is running"
+                    }
                   }
                 }
               }
@@ -144,8 +220,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Ledger initialized successfully" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Ledger initialized successfully"
+                    }
                   }
                 }
               }
@@ -176,8 +258,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "type": "string", "example": "" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "string",
+                      "example": ""
+                    }
                   }
                 }
               }
@@ -195,7 +283,9 @@
             "name": "issuerId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "example": "DEMO_ISSUER"
           }
         ],
@@ -207,15 +297,33 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-                        "organizationName": { "type": "string", "example": "Demo University" },
-                        "departmentName": { "type": "string", "example": "Academic Office" },
-                        "mspId": { "type": "string", "example": "Org1MSP" },
-                        "status": { "type": "string", "example": "ACTIVE" }
+                        "issuerId": {
+                          "type": "string",
+                          "example": "DEMO_ISSUER"
+                        },
+                        "organizationName": {
+                          "type": "string",
+                          "example": "Demo University"
+                        },
+                        "departmentName": {
+                          "type": "string",
+                          "example": "Academic Office"
+                        },
+                        "mspId": {
+                          "type": "string",
+                          "example": "Org1MSP"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "ACTIVE"
+                        }
                       }
                     }
                   }
@@ -235,7 +343,9 @@
             "name": "issuerId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -246,8 +356,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "type": "boolean", "example": true }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "boolean",
+                      "example": true
+                    }
                   }
                 }
               }
@@ -265,7 +381,9 @@
             "name": "issuerId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -276,7 +394,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "array",
                       "items": {
@@ -313,8 +434,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "type": "string", "example": "" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "string",
+                      "example": ""
+                    }
                   }
                 }
               }
@@ -331,7 +458,9 @@
             "in": "query",
             "required": false,
             "description": "ID issuer untuk menyaring sertifikat.",
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "example": "DEMO_ISSUER"
           }
         ],
@@ -343,7 +472,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "array",
                       "items": {
@@ -367,7 +499,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -378,7 +512,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "$ref": "#/components/schemas/LedgerCertificateAsset"
                     }
@@ -399,7 +536,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -410,8 +549,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "type": "boolean", "example": true }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "boolean",
+                      "example": true
+                    }
                   }
                 }
               }
@@ -429,7 +574,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -445,7 +592,9 @@
                     "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea"
                   }
                 },
-                "required": ["ipfsCid"]
+                "required": [
+                  "ipfsCid"
+                ]
               }
             }
           }
@@ -458,19 +607,49 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "certificateId": { "type": "string", "example": "UUID-123" },
-                        "valid": { "type": "boolean", "example": true },
-                        "status": { "type": "string", "example": "ACTIVE" },
-                        "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-                        "certificateType": { "type": "string", "example": "DIPLOMA" },
-                        "message": { "type": "string", "example": "certificate is valid" },
-                        "issuedAt": { "type": "string", "example": "2026-06-27" },
-                        "revoked": { "type": "boolean", "example": false },
-                        "tampered": { "type": "boolean", "example": false }
+                        "certificateId": {
+                          "type": "string",
+                          "example": "UUID-123"
+                        },
+                        "valid": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "ACTIVE"
+                        },
+                        "issuerId": {
+                          "type": "string",
+                          "example": "DEMO_ISSUER"
+                        },
+                        "certificateType": {
+                          "type": "string",
+                          "example": "DIPLOMA"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "certificate is valid"
+                        },
+                        "issuedAt": {
+                          "type": "string",
+                          "example": "2026-06-27"
+                        },
+                        "revoked": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "tampered": {
+                          "type": "boolean",
+                          "example": false
+                        }
                       }
                     }
                   }
@@ -490,7 +669,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -500,9 +681,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "reason": { "type": "string", "description": "Alasan penarikan dokumen", "example": "Salah ketik nilai IPK" },
-                  "reasonHash": { "type": "string", "description": "Hash SHA256 alasan penarikan (opsional jika alasan raw diberikan)", "example": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" },
-                  "revokedAt": { "type": "string", "format": "date-time", "example": "2026-06-29T08:00:00Z" }
+                  "reason": {
+                    "type": "string",
+                    "description": "Alasan penarikan dokumen",
+                    "example": "Salah ketik nilai IPK"
+                  },
+                  "reasonHash": {
+                    "type": "string",
+                    "description": "Hash SHA256 alasan penarikan (opsional jika alasan raw diberikan)",
+                    "example": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+                  },
+                  "revokedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-06-29T08:00:00Z"
+                  }
                 }
               }
             }
@@ -516,8 +709,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": { "type": "string", "example": "" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "string",
+                      "example": ""
+                    }
                   }
                 }
               }
@@ -535,7 +734,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -546,13 +747,25 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "certificateId": { "type": "string", "example": "UUID-123" },
-                        "reasonHash": { "type": "string", "example": "2cf24dba..." },
-                        "revokedAt": { "type": "string", "example": "2026-06-29T08:00:00Z" }
+                        "certificateId": {
+                          "type": "string",
+                          "example": "UUID-123"
+                        },
+                        "reasonHash": {
+                          "type": "string",
+                          "example": "2cf24dba..."
+                        },
+                        "revokedAt": {
+                          "type": "string",
+                          "example": "2026-06-29T08:00:00Z"
+                        }
                       }
                     }
                   }
@@ -572,7 +785,9 @@
             "name": "certificateId",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -583,15 +798,27 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "txId": { "type": "string", "example": "tx-12345" },
-                          "timestamp": { "type": "string", "example": "2026-06-29T08:00:00Z" },
-                          "isDelete": { "type": "boolean", "example": false },
+                          "txId": {
+                            "type": "string",
+                            "example": "tx-12345"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "example": "2026-06-29T08:00:00Z"
+                          },
+                          "isDelete": {
+                            "type": "boolean",
+                            "example": false
+                          },
                           "value": {
                             "$ref": "#/components/schemas/LedgerCertificateAsset"
                           }
@@ -622,23 +849,90 @@
                     "format": "binary",
                     "description": "Berkas berkas ijazah berformat PDF."
                   },
-                  "certificateNumber": { "type": "string", "example": "CERT-2026-TI-0001" },
-                  "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-                  "organizationName": { "type": "string", "example": "Demo University" },
-                  "departmentName": { "type": "string", "example": "Academic Office" },
-                  "mspId": { "type": "string", "example": "Org1MSP" },
-                  "certificateType": { "type": "string", "example": "DIPLOMA" },
-                  "degreeTitle": { "type": "string", "example": "Bachelor of Computer Science" },
-                  "studentId": { "type": "string", "description": "NIM Mahasiswa (raw, backend otomatis akan meng-hash ke StudentIdHash)", "example": "NIM-12345" },
-                  "studentName": { "type": "string", "example": "John Doe" },
-                  "organizationName": { "type": "string", "example": "Demo University" },
-                  "studyProgram": { "type": "string", "example": "Teknik Informatika" },
-                  "educationLevel": { "type": "string", "example": "S1" },
-                  "graduationDate": { "type": "string", "format": "date", "description": "Format YYYY-MM-DD (opsional)", "example": "2026-06-30" },
-                  "issuedAt": { "type": "string", "format": "date", "description": "Format YYYY-MM-DD", "example": "2026-06-27" },
-                  "expiredAt": { "type": "string", "format": "date", "description": "Format YYYY-MM-DD (opsional)", "example": "" }
+                  "certificateNumber": {
+                    "type": "string",
+                    "example": "CERT-2026-TI-0001"
+                  },
+                  "issuerId": {
+                    "type": "string",
+                    "example": "DEMO_ISSUER"
+                  },
+                  "organizationName": {
+                    "type": "string",
+                    "example": "Demo University"
+                  },
+                  "departmentName": {
+                    "type": "string",
+                    "example": "Academic Office"
+                  },
+                  "mspId": {
+                    "type": "string",
+                    "example": "Org1MSP"
+                  },
+                  "certificateType": {
+                    "type": "string",
+                    "example": "DIPLOMA"
+                  },
+                  "degreeTitle": {
+                    "type": "string",
+                    "example": "Bachelor of Computer Science"
+                  },
+                  "studentId": {
+                    "type": "string",
+                    "description": "NIM Mahasiswa (raw, backend otomatis akan meng-hash ke StudentIdHash)",
+                    "example": "NIM-12345"
+                  },
+                  "studentName": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "studyProgram": {
+                    "type": "string",
+                    "example": "Teknik Informatika"
+                  },
+                  "educationLevel": {
+                    "type": "string",
+                    "example": "S1"
+                  },
+                  "graduationDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Format YYYY-MM-DD (opsional)",
+                    "example": "2026-06-30"
+                  },
+                  "issuedAt": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Format YYYY-MM-DD",
+                    "example": "2026-06-27"
+                  },
+                  "expiredAt": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Format YYYY-MM-DD (opsional)",
+                    "example": ""
+                  },
+                  "faculty": {
+                    "type": "string",
+                    "example": "Fakultas Teknik"
+                  }
                 },
-                "required": ["file_ijazah", "certificateNumber", "issuerId", "organizationName", "departmentName", "mspId", "certificateType", "degreeTitle", "studentId", "studentName", "studyProgram", "educationLevel", "issuedAt"]
+                "required": [
+                  "file_ijazah",
+                  "certificateNumber",
+                  "issuerId",
+                  "organizationName",
+                  "departmentName",
+                  "mspId",
+                  "certificateType",
+                  "degreeTitle",
+                  "studentId",
+                  "studentName",
+                  "faculty",
+                  "studyProgram",
+                  "educationLevel",
+                  "issuedAt"
+                ]
               }
             }
           }
@@ -651,8 +945,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "message": { "type": "string", "example": "Certificate uploaded successfully" },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Certificate uploaded successfully"
+                    },
                     "data": {
                       "$ref": "#/components/schemas/DatabaseCertificate"
                     }
@@ -673,7 +973,9 @@
             "name": "nomorIjazah",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "example": "CERT-2026-TI-0001"
           }
         ],
@@ -685,21 +987,58 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "valid": { "type": "boolean", "description": "Menunjukkan apakah dokumen terverifikasi asli di blockchain ledger.", "example": true },
-                    "message": { "type": "string", "example": "certificate is valid" },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "valid": {
+                      "type": "boolean",
+                      "description": "Menunjukkan apakah dokumen terverifikasi asli di blockchain ledger.",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "certificate is valid"
+                    },
                     "ledgerData": {
                       "type": "object",
                       "properties": {
-                        "certificateId": { "type": "string", "example": "UUID-1234" },
-                        "valid": { "type": "boolean", "example": true },
-                        "status": { "type": "string", "example": "ACTIVE" },
-                        "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-                        "certificateType": { "type": "string", "example": "DIPLOMA" },
-                        "message": { "type": "string", "example": "certificate is valid" },
-                        "issuedAt": { "type": "string", "example": "2026-06-27" },
-                        "revoked": { "type": "boolean", "example": false },
-                        "tampered": { "type": "boolean", "example": false }
+                        "certificateId": {
+                          "type": "string",
+                          "example": "UUID-1234"
+                        },
+                        "valid": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "ACTIVE"
+                        },
+                        "issuerId": {
+                          "type": "string",
+                          "example": "DEMO_ISSUER"
+                        },
+                        "certificateType": {
+                          "type": "string",
+                          "example": "DIPLOMA"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "certificate is valid"
+                        },
+                        "issuedAt": {
+                          "type": "string",
+                          "example": "2026-06-27"
+                        },
+                        "revoked": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "tampered": {
+                          "type": "boolean",
+                          "example": false
+                        }
                       }
                     },
                     "dbData": {
@@ -728,7 +1067,9 @@
             "in": "query",
             "required": false,
             "description": "ID issuer untuk menyaring sertifikat.",
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "example": "DEMO_ISSUER"
           }
         ],
@@ -740,7 +1081,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "array",
                       "items": {
@@ -773,12 +1117,26 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "status": { "type": "string", "enum": ["connected", "degraded"], "example": "connected" },
-                        "itemCount": { "type": "integer", "nullable": true, "example": null }
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "connected",
+                            "degraded"
+                          ],
+                          "example": "connected"
+                        },
+                        "itemCount": {
+                          "type": "integer",
+                          "nullable": true,
+                          "example": null
+                        }
                       }
                     }
                   }
@@ -800,15 +1158,30 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "functionName": { "type": "string", "description": "Nama fungsi smart contract", "example": "SmartContract:GetAllCertificates" },
+                  "functionName": {
+                    "type": "string",
+                    "description": "Nama fungsi smart contract",
+                    "example": "SmartContract:GetAllCertificates"
+                  },
                   "args": {
                     "type": "array",
-                    "items": { "type": "string" },
+                    "items": {
+                      "type": "string"
+                    },
                     "example": []
                   },
-                  "mode": { "type": "string", "enum": ["evaluate", "submit"], "example": "submit" }
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "evaluate",
+                      "submit"
+                    ],
+                    "example": "submit"
+                  }
                 },
-                "required": ["functionName"]
+                "required": [
+                  "functionName"
+                ]
               }
             }
           }
@@ -821,12 +1194,25 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "mode": { "type": "string", "enum": ["evaluate", "submit"], "example": "submit" },
-                        "result": { "nullable": true, "example": [] }
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "evaluate",
+                            "submit"
+                          ],
+                          "example": "submit"
+                        },
+                        "result": {
+                          "nullable": true,
+                          "example": []
+                        }
                       }
                     }
                   }
@@ -843,87 +1229,255 @@
       "RegisterIssuerRequest": {
         "type": "object",
         "properties": {
-          "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-          "organizationName": { "type": "string", "example": "Demo University" },
-          "departmentName": { "type": "string", "example": "Academic Office" },
-          "mspId": { "type": "string", "example": "Org1MSP" }
+          "issuerId": {
+            "type": "string",
+            "example": "DEMO_ISSUER"
+          },
+          "organizationName": {
+            "type": "string",
+            "example": "Demo University"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Academic Office"
+          },
+          "mspId": {
+            "type": "string",
+            "example": "Org1MSP"
+          }
         },
-        "required": ["issuerId", "organizationName", "departmentName", "mspId"]
+        "required": [
+          "issuerId",
+          "organizationName",
+          "departmentName",
+          "mspId"
+        ]
       },
       "IssueCertificateRequest": {
         "type": "object",
         "properties": {
-          "certificateId": { "type": "string", "example": "UUID-1234" },
-          "certificateNumber": { "type": "string", "example": "CERT-2026-TI-0001" },
-          "studentId": { "type": "string", "example": "NIM-12345" },
-          "studentIdHash": { "type": "string", "example": "a4d3..." },
-          "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-          "certificateType": { "type": "string", "example": "DIPLOMA" },
-          "degreeTitle": { "type": "string", "example": "Bachelor of Computer Science" },
-          "ipfsCid": { "type": "string", "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea" },
-          "issuedAt": { "type": "string", "example": "2026-06-27" },
-          "expiredAt": { "type": "string", "example": "" }
+          "certificateId": {
+            "type": "string",
+            "example": "UUID-1234"
+          },
+          "certificateNumber": {
+            "type": "string",
+            "example": "CERT-2026-TI-0001"
+          },
+          "studentId": {
+            "type": "string",
+            "example": "NIM-12345"
+          },
+          "studentIdHash": {
+            "type": "string",
+            "example": "a4d3..."
+          },
+          "issuerId": {
+            "type": "string",
+            "example": "DEMO_ISSUER"
+          },
+          "certificateType": {
+            "type": "string",
+            "example": "DIPLOMA"
+          },
+          "degreeTitle": {
+            "type": "string",
+            "example": "Bachelor of Computer Science"
+          },
+          "ipfsCid": {
+            "type": "string",
+            "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea"
+          },
+          "issuedAt": {
+            "type": "string",
+            "example": "2026-06-27"
+          },
+          "expiredAt": {
+            "type": "string",
+            "example": ""
+          }
         },
-        "required": ["certificateNumber", "issuerId", "certificateType", "degreeTitle", "ipfsCid", "issuedAt"]
+        "required": [
+          "certificateNumber",
+          "issuerId",
+          "certificateType",
+          "degreeTitle",
+          "ipfsCid",
+          "issuedAt"
+        ]
       },
       "LedgerCertificateAsset": {
         "type": "object",
         "properties": {
-          "docType": { "type": "string", "example": "certificate" },
-          "certificateId": { "type": "string", "example": "UUID-1234" },
-          "certificateNumber": { "type": "string", "example": "CERT-2026-TI-0001" },
-          "studentIdHash": { "type": "string", "example": "a4d3..." },
-          "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-          "certificateType": { "type": "string", "example": "DIPLOMA" },
-          "title": { "type": "string", "example": "Bachelor Degree" },
-          "ipfsCid": { "type": "string", "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea" },
-          "status": { "type": "string", "example": "ACTIVE" },
-          "issuedAt": { "type": "string", "example": "2026-06-27" },
-          "expiredAt": { "type": "string", "example": "" },
-          "previousCertificateId": { "type": "string", "example": "" },
-          "replacementCertificateId": { "type": "string", "example": "" },
-          "createdAt": { "type": "string", "example": "2026-06-27T00:00:00Z" },
-          "updatedAt": { "type": "string", "example": "2026-06-29T08:00:00Z" }
+          "docType": {
+            "type": "string",
+            "example": "certificate"
+          },
+          "certificateId": {
+            "type": "string",
+            "example": "UUID-1234"
+          },
+          "certificateNumber": {
+            "type": "string",
+            "example": "CERT-2026-TI-0001"
+          },
+          "studentIdHash": {
+            "type": "string",
+            "example": "a4d3..."
+          },
+          "issuerId": {
+            "type": "string",
+            "example": "DEMO_ISSUER"
+          },
+          "certificateType": {
+            "type": "string",
+            "example": "DIPLOMA"
+          },
+          "title": {
+            "type": "string",
+            "example": "Bachelor Degree"
+          },
+          "ipfsCid": {
+            "type": "string",
+            "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea"
+          },
+          "status": {
+            "type": "string",
+            "example": "ACTIVE"
+          },
+          "issuedAt": {
+            "type": "string",
+            "example": "2026-06-27"
+          },
+          "expiredAt": {
+            "type": "string",
+            "example": ""
+          },
+          "previousCertificateId": {
+            "type": "string",
+            "example": ""
+          },
+          "replacementCertificateId": {
+            "type": "string",
+            "example": ""
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-27T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-06-29T08:00:00Z"
+          }
         }
       },
       "DatabaseCertificate": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer", "example": 1 },
-          "certificateId": { "type": "string", "example": "UUID-1234" },
-          "certificateNumber": { "type": "string", "example": "CERT-2026-TI-0001" },
-          "issuerId": { "type": "string", "example": "DEMO_ISSUER" },
-          "certificateType": { "type": "string", "example": "DIPLOMA" },
-          "degreeTitle": { "type": "string", "example": "Bachelor of Computer Science" },
-          "studentId": { "type": "string", "example": "NIM-12345" },
-          "studentName": { "type": "string", "example": "John Doe" },
-          "organizationName": { "type": "string", "example": "Demo University" },
-          "studyProgram": { "type": "string", "example": "Teknik Informatika" },
-          "educationLevel": { "type": "string", "example": "S1" },
-          "graduationDate": { "type": "string", "nullable": true, "example": null },
-          "ipfsCid": { "type": "string", "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea" },
-          "file_name": { "type": "string", "example": "ijazah.pdf" },
-          "mime_type": { "type": "string", "example": "application/pdf" },
-          "file_size": { "type": "integer", "example": 1048576 },
-          "ledger_tx_id": { "type": "string", "example": "tx-id-blockchain-abc" },
-          "status": { "type": "string", "example": "VALID" },
-          "issuedAt": { "type": "string", "example": "2026-06-27T00:00:00.000Z" },
-          "created_at": { "type": "string", "example": "2026-06-27T00:00:00.000Z" },
-          "updated_at": { "type": "string", "example": "2026-06-29T08:00:00.000Z" }
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "certificateId": {
+            "type": "string",
+            "example": "UUID-1234"
+          },
+          "certificateNumber": {
+            "type": "string",
+            "example": "CERT-2026-TI-0001"
+          },
+          "issuerId": {
+            "type": "string",
+            "example": "DEMO_ISSUER"
+          },
+          "certificateType": {
+            "type": "string",
+            "example": "DIPLOMA"
+          },
+          "degreeTitle": {
+            "type": "string",
+            "example": "Bachelor of Computer Science"
+          },
+          "studentId": {
+            "type": "string",
+            "example": "NIM-12345"
+          },
+          "studentName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "organizationName": {
+            "type": "string",
+            "example": "Demo University"
+          },
+          "studyProgram": {
+            "type": "string",
+            "example": "Teknik Informatika"
+          },
+          "educationLevel": {
+            "type": "string",
+            "example": "S1"
+          },
+          "graduationDate": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "ipfsCid": {
+            "type": "string",
+            "example": "bafkreiagd7rpkbe4s3lsljm2vnk23wrf6e3vsjhrk43z5daxaea7bofgea"
+          },
+          "file_name": {
+            "type": "string",
+            "example": "ijazah.pdf"
+          },
+          "mime_type": {
+            "type": "string",
+            "example": "application/pdf"
+          },
+          "file_size": {
+            "type": "integer",
+            "example": 1048576
+          },
+          "ledger_tx_id": {
+            "type": "string",
+            "example": "tx-id-blockchain-abc"
+          },
+          "status": {
+            "type": "string",
+            "example": "VALID"
+          },
+          "issuedAt": {
+            "type": "string",
+            "example": "2026-06-27T00:00:00.000Z"
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2026-06-27T00:00:00.000Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "example": "2026-06-29T08:00:00.000Z"
+          },
+          "faculty": {
+            "type": "string",
+            "nullable": true,
+            "example": "Fakultas Teknik"
+          }
+        }
+      },
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+    "security": [
+      {
+        "bearerAuth": []
       }
-    }
-  },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ]
-}
+    ]
+  }
 }

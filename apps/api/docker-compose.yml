@@ -49,8 +49,8 @@ services:
   migrate:
     image: ipfs-hyperledger-backend:latest
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: apps/api/Dockerfile
       network: host
     restart: "no"
     depends_on:
@@ -102,7 +102,7 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
-      - ${FABRIC_CRYPTO_HOST_PATH:-../hyperleger-fabric-ipfs/organization}:/fabric-crypto:ro
+      - ${FABRIC_CRYPTO_HOST_PATH:-../../organization}:/fabric-crypto:ro
     logging:
       driver: json-file
       options:

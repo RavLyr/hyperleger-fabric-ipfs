@@ -176,6 +176,7 @@ export async function GET(request: NextRequest) {
         studentName: dbData.studentName ?? null,
         organizationName,
         universityName: organizationName,
+        faculty: dbData.faculty ?? null,
         studyProgram: dbData.studyProgram ?? null,
         educationLevel: dbData.educationLevel ?? null,
         graduationDate: dbData.graduationDate ?? null,

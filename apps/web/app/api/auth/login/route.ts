@@ -4,6 +4,7 @@ import {
   AUTH_COOKIE_MAX_AGE,
   AUTH_COOKIES,
   createAdminSessionCookie,
+  isAuthCookieSecure,
 } from "@/lib/auth/session-cookie"
 
 export const runtime = "nodejs"
@@ -52,11 +53,12 @@ export async function POST(request: NextRequest) {
       message: "Login berhasil.",
       issuer,
     })
+    const isHttps = isAuthCookieSecure()
 
     response.cookies.set(AUTH_COOKIES.accessToken, accessToken, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       path: "/",
       maxAge: AUTH_COOKIE_MAX_AGE,
     })
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
       {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: isHttps,
         path: "/",
         maxAge: AUTH_COOKIE_MAX_AGE,
       }

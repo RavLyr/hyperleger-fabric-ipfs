@@ -169,7 +169,7 @@ function MetadataItem({
 
 async function getDatabaseCertificateByCertificateId(
   certificateId: string,
-  issuerId: string
+  issuerId?: string
 ) {
   const certificates = await getDatabaseCertificates(issuerId).catch(() => [])
 
@@ -193,48 +193,64 @@ export default async function PreviewDiplomaPage({
   const session = await requireAdminSession()
   const issuerScope = getIssuerScope(session)
 
-  const ledgerCertificate = await getLedgerCertificateDetail(
-    certificateId
-  ).catch(() => null)
+  const [ledgerCertificate, scopedDbCertificate] = await Promise.all([
+    getLedgerCertificateDetail(certificateId).catch(() => null),
+    getDatabaseCertificateByCertificateId(certificateId, issuerScope),
+  ])
 
-  if (!ledgerCertificate) {
+  if (!ledgerCertificate && !scopedDbCertificate) {
     notFound()
   }
 
-  if (issuerScope && ledgerCertificate.issuerId !== issuerScope) {
+  const certificate: LedgerCertificateAsset = ledgerCertificate ?? {
+    certificateId: scopedDbCertificate!.certificateId,
+    certificateNumber: scopedDbCertificate!.certificateNumber,
+    issuerId: scopedDbCertificate!.issuerId,
+    certificateType: scopedDbCertificate!.certificateType,
+    title: scopedDbCertificate!.degreeTitle ?? "-",
+    degreeTitle: scopedDbCertificate!.degreeTitle ?? null,
+    ipfsCid: scopedDbCertificate!.ipfsCid ?? "",
+    status: scopedDbCertificate!.status ?? "-",
+    issuedAt: scopedDbCertificate!.issuedAt,
+    expiredAt: scopedDbCertificate!.expiredAt,
+    createdAt: scopedDbCertificate!.created_at,
+    updatedAt: scopedDbCertificate!.updated_at,
+    studentIdHash: scopedDbCertificate!.studentIdHash,
+  }
+
+  if (issuerScope && certificate.issuerId !== issuerScope) {
     notFound()
   }
 
   const [dbCertificate, issuer] = await Promise.all([
-    getDatabaseCertificateByCertificateId(
-      ledgerCertificate.certificateId,
-      ledgerCertificate.issuerId
-    ),
-    getSafeIssuer(ledgerCertificate.issuerId),
+    scopedDbCertificate ??
+      getDatabaseCertificateByCertificateId(
+        certificate.certificateId,
+        certificate.issuerId
+      ),
+    getSafeIssuer(certificate.issuerId),
   ])
 
   const certificateNumber =
-    dbCertificate?.certificateNumber ?? ledgerCertificate.certificateNumber
+    dbCertificate?.certificateNumber ?? certificate.certificateNumber
 
   const studentName = dbCertificate?.studentName ?? "-"
   const studentId = dbCertificate?.studentId ?? "-"
+  const faculty = dbCertificate?.faculty ?? "-"
   const studyProgram = dbCertificate?.studyProgram ?? "-"
   const educationLevel = dbCertificate?.educationLevel ?? "-"
   const graduationDate = dbCertificate?.graduationDate ?? null
 
   const certificateType =
-    dbCertificate?.certificateType ?? ledgerCertificate.certificateType ?? "IJAZAH"
+    dbCertificate?.certificateType ?? certificate.certificateType ?? "IJAZAH"
 
-  const certificateTitle = getCertificateTitle(
-    dbCertificate,
-    ledgerCertificate
-  )
+  const certificateTitle = getCertificateTitle(dbCertificate, certificate)
 
-  const status = getCertificateStatus(dbCertificate, ledgerCertificate)
+  const status = getCertificateStatus(dbCertificate, certificate)
 
-  const issuedAt = dbCertificate?.issuedAt ?? ledgerCertificate.issuedAt
-  const expiredAt = dbCertificate?.expiredAt ?? ledgerCertificate.expiredAt
-  const ipfsCid = dbCertificate?.ipfsCid ?? ledgerCertificate.ipfsCid
+  const issuedAt = dbCertificate?.issuedAt ?? certificate.issuedAt
+  const expiredAt = dbCertificate?.expiredAt ?? certificate.expiredAt
+  const ipfsCid = dbCertificate?.ipfsCid ?? certificate.ipfsCid
   const documentUrl = getIpfsDocumentUrl(ipfsCid)
 
   const organizationName = getOrganizationName(issuer, dbCertificate)
@@ -320,6 +336,11 @@ export default async function PreviewDiplomaPage({
                     />
 
                     <MetadataItem
+                      label="Fakultas"
+                      value={faculty}
+                    />
+
+                    <MetadataItem
                       label="Program Studi"
                       value={studyProgram}
                     />
@@ -354,7 +375,7 @@ export default async function PreviewDiplomaPage({
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <MetadataItem
                     label="Certificate ID"
-                    value={ledgerCertificate.certificateId}
+                    value={certificate.certificateId}
                     mono
                   />
 
@@ -375,11 +396,13 @@ export default async function PreviewDiplomaPage({
 
                   <MetadataItem
                     label="Issuer ID"
-                    value={ledgerCertificate.issuerId}
+                    value={certificate.issuerId}
                     mono
                   />
 
                   <MetadataItem label="Issuer" value={organizationName} />
+
+                  <MetadataItem label="Faculty" value={faculty} />
 
                   <MetadataItem
                     label="Department"
@@ -409,10 +432,10 @@ export default async function PreviewDiplomaPage({
 
                   <MetadataItem label="IPFS CID" value={ipfsCid ?? "-"} mono />
 
-                  {ledgerCertificate.studentIdHash ? (
+                  {certificate.studentIdHash ? (
                     <MetadataItem
                       label="Student ID Hash"
-                      value={ledgerCertificate.studentIdHash}
+                      value={certificate.studentIdHash}
                       mono
                     />
                   ) : null}
@@ -471,7 +494,7 @@ export default async function PreviewDiplomaPage({
 
               <Link
                 href={`/admin/ijazah/${encodeURIComponent(
-                  ledgerCertificate.certificateId
+                  certificate.certificateId
                 )}`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50 active:scale-95"
               >
@@ -495,7 +518,7 @@ export default async function PreviewDiplomaPage({
             <p className="mt-8 text-xs font-semibold text-slate-500">
               Generated on:{" "}
               {formatDate(
-                dbCertificate?.created_at ?? ledgerCertificate.createdAt
+                dbCertificate?.created_at ?? certificate.createdAt
               )}{" "}
               • Certificate Number:{" "}
               <span className="font-mono">{certificateNumber}</span>

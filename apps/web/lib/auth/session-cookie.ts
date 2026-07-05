@@ -7,6 +7,13 @@ export const AUTH_COOKIES = {
 
 export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 12
 
+export function isAuthCookieSecure() {
+  const isHttps =
+    process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://") ?? false
+
+  return isHttps
+}
+
 export type AdminSessionData = {
   role: AdminRole
   issuerId?: string

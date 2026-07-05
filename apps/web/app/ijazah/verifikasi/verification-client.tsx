@@ -43,6 +43,7 @@ type Diploma = {
 
   organizationName?: string | null
   universityName?: string | null
+  faculty?: string | null
 
   studyProgram?: string | null
   educationLevel?: string | null
@@ -824,6 +825,11 @@ export default function VerificationClient() {
                       <DetailItem
                         label="Departemen"
                         value={getDepartmentName(diploma)}
+                      />
+
+                      <DetailItem
+                        label="Fakultas"
+                        value={diploma.faculty}
                       />
 
                       <DetailItem

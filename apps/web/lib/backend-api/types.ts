@@ -40,6 +40,7 @@ export type DatabaseCertificate = {
   studentName: string
   organizationName?: string | null
   universityName?: string | null
+  faculty?: string | null
   studyProgram: string
   educationLevel: string
   graduationDate?: string | null
@@ -111,6 +112,7 @@ export type UploadCertificateInput = {
   degreeTitle: string
   studentId: string
   studentName: string
+  faculty?: string
   studyProgram: string
   educationLevel: string
   issuedAt: string

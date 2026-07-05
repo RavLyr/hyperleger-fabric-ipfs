@@ -61,6 +61,7 @@ model Certificate {
   studentId                String                  @map("student_id")
   studentName              String                  @map("student_name")
   organizationName         String                  @map("organization_name")
+  faculty                  String?                 @map("faculty")
   studyProgram             String                  @map("study_program")
   educationLevel           String                  @map("education_level")
   graduationDate           DateTime?               @map("graduation_date")

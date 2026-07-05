@@ -180,6 +180,7 @@ function matchSearch(certificate: DatabaseCertificate, q: string) {
     certificate.title,
     certificate.studentId,
     certificate.studentName,
+    certificate.faculty,
     certificate.studyProgram,
     certificate.educationLevel,
     certificate.graduationDate,
@@ -476,6 +477,10 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
                       <td className="whitespace-nowrap px-6 py-4">
                         <p className="font-semibold text-slate-700">
                           {diploma.studyProgram || "-"}
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                          {diploma.faculty || "-"}
                         </p>
 
                         <p className="mt-1 text-xs text-slate-500">

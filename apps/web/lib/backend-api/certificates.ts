@@ -114,6 +114,11 @@ export async function uploadCertificate(input: UploadCertificateInput) {
 
   formData.append("studentId", input.studentId)
   formData.append("studentName", input.studentName)
+
+  if (input.faculty) {
+    formData.append("faculty", input.faculty)
+  }
+
   formData.append("studyProgram", input.studyProgram)
   formData.append("educationLevel", input.educationLevel)
 

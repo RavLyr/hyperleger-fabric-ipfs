@@ -18,14 +18,25 @@ export default function AddCertificate() {
   const confirmedSubmitRef = useRef(false)
 
   const [fileName, setFileName] = useState("")
+  const [selectedFaculty, setSelectedFaculty] = useState("")
   const [selectedStudyProgram, setSelectedStudyProgram] = useState("")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const facultyOptions = useMemo(() => {
+    return Array.from(
+      new Set(certificateProgramOptions.map((program) => program.faculty))
+    ).sort((a, b) => a.localeCompare(b))
+  }, [])
 
   const programOptions = useMemo(() => {
     const map = new Map<string, (typeof certificateProgramOptions)[number]>()
 
     for (const program of certificateProgramOptions) {
+      if (program.faculty !== selectedFaculty) {
+        continue
+      }
+
       if (!map.has(program.studyProgram)) {
         map.set(program.studyProgram, program)
       }
@@ -34,13 +45,18 @@ export default function AddCertificate() {
     return Array.from(map.values()).sort((a, b) =>
       a.studyProgram.localeCompare(b.studyProgram)
     )
-  }, [])
+  }, [selectedFaculty])
 
   const selectedProgram = useMemo(() => {
     return programOptions.find(
       (program) => program.studyProgram === selectedStudyProgram
     )
   }, [programOptions, selectedStudyProgram])
+
+  function handleFacultyChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedFaculty(event.target.value)
+    setSelectedStudyProgram("")
+  }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -93,7 +109,7 @@ export default function AddCertificate() {
             </h1>
 
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Masukkan data ijazah yang akan diterbitkan dan disimpan ke backend.
+              Masukkan data ijazah yang akan diterbitkan.
             </p>
           </div>
 
@@ -152,6 +168,28 @@ export default function AddCertificate() {
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
+                  Fakultas / Sekolah
+                </label>
+
+                <select
+                  name="faculty"
+                  required
+                  value={selectedFaculty}
+                  onChange={handleFacultyChange}
+                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                >
+                  <option value="">Pilih fakultas</option>
+
+                  {facultyOptions.map((faculty) => (
+                    <option key={faculty} value={faculty}>
+                      {faculty}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700">
                   Program Studi
                 </label>
 
@@ -159,16 +197,21 @@ export default function AddCertificate() {
                   name="studyProgram"
                   required
                   value={selectedStudyProgram}
+                  disabled={!selectedFaculty}
                   onChange={(event) =>
                     setSelectedStudyProgram(event.target.value)
                   }
                   className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 >
-                  <option value="">Pilih program studi</option>
+                  <option value="">
+                    {selectedFaculty
+                      ? "Pilih program studi"
+                      : "Pilih fakultas terlebih dahulu"}
+                  </option>
 
                   {programOptions.map((program) => (
                     <option
-                      key={`${program.educationLevel}-${program.studyProgram}-${program.degreeTitle}`}
+                      key={`${program.faculty}-${program.educationLevel}-${program.studyProgram}-${program.degreeTitle}`}
                       value={program.studyProgram}
                     >
                       {program.studyProgram}

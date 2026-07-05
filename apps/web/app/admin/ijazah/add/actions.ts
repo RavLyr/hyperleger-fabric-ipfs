@@ -63,6 +63,7 @@ export async function createDiploma(formData: FormData) {
     formData.get("degreeTitle") ?? formData.get("title") ?? ""
   ).trim()
 
+  const faculty = String(formData.get("faculty") ?? "").trim()
   const studyProgram = String(formData.get("studyProgram") ?? "").trim()
   const educationLevel = String(formData.get("educationLevel") ?? "").trim()
 
@@ -85,12 +86,13 @@ export async function createDiploma(formData: FormData) {
     !certificateNumber ||
     !certificateType ||
     !degreeTitle ||
+    !faculty ||
     !studyProgram ||
     !educationLevel ||
     !issuedAtRaw
   ) {
     throw new Error(
-      "Nama mahasiswa, NIM, nomor ijazah, jenis ijazah, gelar, program studi, jenjang pendidikan, dan tanggal terbit wajib diisi."
+      "Nama mahasiswa, NIM, nomor ijazah, jenis ijazah, gelar, fakultas, program studi, jenjang pendidikan, dan tanggal terbit wajib diisi."
     )
   }
 
@@ -157,6 +159,7 @@ export async function createDiploma(formData: FormData) {
 
     studentId,
     studentName,
+    faculty,
     studyProgram,
     educationLevel,
 

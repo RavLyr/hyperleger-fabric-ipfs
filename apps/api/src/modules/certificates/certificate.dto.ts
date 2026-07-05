@@ -176,6 +176,7 @@ export interface Certificate {
   studentId: string;
   studentName: string;
   organizationName: string;
+  faculty: string | null;
 
   studyProgram: string;
   educationLevel: string;
@@ -203,6 +204,7 @@ export interface CertificateTextInput {
   degreeTitle: string;
   studentId: string;
   studentName: string;
+  faculty: string;
 
   studyProgram: string;
   educationLevel: string;

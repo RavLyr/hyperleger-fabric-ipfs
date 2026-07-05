@@ -53,6 +53,7 @@ type DatabaseCertificate = {
   studentName: string
   organizationName?: string | null
   universityName?: string | null
+  faculty?: string | null
 
   studyProgram: string
   educationLevel: string
@@ -116,7 +117,7 @@ async function getDatabaseCertificates(issuerId?: string) {
 
 async function getDatabaseCertificateByCertificateId(
   certificateId: string,
-  issuerId: string
+  issuerId?: string
 ) {
   const certificates = await getDatabaseCertificates(issuerId).catch(() => [])
 
@@ -230,10 +231,29 @@ export default async function AdminDiplomaDetailPage({
   const session = await requireAdminSession()
   const issuerScope = getIssuerScope(session)
 
-  const certificate = await getCertificateById(certificateId).catch(() => null)
+  const [ledgerCertificate, scopedDbCertificate] = await Promise.all([
+    getCertificateById(certificateId).catch(() => null),
+    getDatabaseCertificateByCertificateId(certificateId, issuerScope),
+  ])
 
-  if (!certificate) {
+  if (!ledgerCertificate && !scopedDbCertificate) {
     notFound()
+  }
+
+  const certificate: LedgerCertificate = ledgerCertificate ?? {
+    certificateId: scopedDbCertificate!.certificateId,
+    certificateNumber: scopedDbCertificate!.certificateNumber,
+    issuerId: scopedDbCertificate!.issuerId,
+    certificateType: scopedDbCertificate!.certificateType,
+    title: scopedDbCertificate!.degreeTitle ?? "-",
+    degreeTitle: scopedDbCertificate!.degreeTitle ?? null,
+    ipfsCid: scopedDbCertificate!.ipfsCid ?? null,
+    status: scopedDbCertificate!.status ?? "-",
+    issuedAt: scopedDbCertificate!.issuedAt,
+    expiredAt: scopedDbCertificate!.expiredAt,
+    createdAt: scopedDbCertificate!.created_at,
+    updatedAt: scopedDbCertificate!.updated_at,
+    studentIdHash: scopedDbCertificate!.studentIdHash,
   }
 
   if (issuerScope && certificate.issuerId !== issuerScope) {
@@ -243,10 +263,11 @@ export default async function AdminDiplomaDetailPage({
   const [issuer, revocation, dbCertificate] = await Promise.all([
     getIssuerById(certificate.issuerId).catch(() => null),
     getRevocationByCertificateId(certificate.certificateId),
-    getDatabaseCertificateByCertificateId(
-      certificate.certificateId,
-      certificate.issuerId
-    ),
+    scopedDbCertificate ??
+      getDatabaseCertificateByCertificateId(
+        certificate.certificateId,
+        certificate.issuerId
+      ),
   ])
 
   const status = getCertificateStatus(certificate, dbCertificate)
@@ -300,6 +321,11 @@ export default async function AdminDiplomaDetailPage({
             />
 
             <DetailItem label="Status" value={status} />
+
+            <DetailItem
+              label="Fakultas"
+              value={dbCertificate?.faculty ?? "-"}
+            />
 
             <DetailItem
               label="Program Studi"

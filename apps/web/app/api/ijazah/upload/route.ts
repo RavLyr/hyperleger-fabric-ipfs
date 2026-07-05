@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
 
     const studentId = getText(formData, "studentId", "nim")
     const studentName = getText(formData, "studentName")
+    const faculty = getText(formData, "faculty")
     const studyProgram = getText(formData, "studyProgram")
     const educationLevel = getText(formData, "educationLevel")
 
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
       !degreeTitle ||
       !studentId ||
       !studentName ||
+      !faculty ||
       !studyProgram ||
       !educationLevel ||
       !issuedAt
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message:
-            "Data upload ijazah belum lengkap. Field wajib: file, certificateNumber, issuerId, organizationName, departmentName, mspId, certificateType, degreeTitle, studentId, studentName, studyProgram, educationLevel, issuedAt.",
+            "Data upload ijazah belum lengkap. Field wajib: file, certificateNumber, issuerId, organizationName, departmentName, mspId, certificateType, degreeTitle, studentId, studentName, faculty, studyProgram, educationLevel, issuedAt.",
         },
         { status: 400 }
       )
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
 
       studentId,
       studentName,
+      faculty,
       studyProgram,
       educationLevel,
 

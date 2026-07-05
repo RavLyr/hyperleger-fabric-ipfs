@@ -171,6 +171,8 @@ export default async function PublicQrCertificatePage({
             value={formatOnlyDate(certificate.graduationDate)}
           />
 
+          <DataRow label="Fakultas" value={certificate.faculty ?? "-"} />
+
           <DataRow label="Prodi" value={certificate.studyProgram} />
 
           <DataRow
@@ -184,8 +186,6 @@ export default async function PublicQrCertificatePage({
             label="Gelar"
             value={certificate.degreeTitle ?? certificate.title}
           />
-
-          <DataRow label="Fakultas" value="-" />
 
           <DataRow
             label="Tanggal Terbit"

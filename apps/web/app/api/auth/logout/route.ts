@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { AUTH_COOKIES } from "@/lib/auth/session-cookie"
+import { AUTH_COOKIES, isAuthCookieSecure } from "@/lib/auth/session-cookie"
 
 export const runtime = "nodejs"
 
@@ -13,12 +13,13 @@ export async function POST() {
     success: true,
     message: "Logout berhasil.",
   })
+  const isHttps = isAuthCookieSecure()
 
   for (const cookieName of cookieNames) {
     response.cookies.set(cookieName, "", {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       path: "/",
       maxAge: 0,
     })
