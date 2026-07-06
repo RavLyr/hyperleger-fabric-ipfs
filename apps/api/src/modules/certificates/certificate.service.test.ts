@@ -3,14 +3,29 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { AppError } from '../../errors/AppError';
+import { createRequireAuth, createRequireIssuerAdmin } from '../../middleware/auth.middleware';
 import { sha256Hex } from '../../utils/hash';
 import { parseIssueCertificateBody, parseRevokeCertificateBody } from './certificate.dto';
-import { createCertificateService, type FabricGateway } from './certificate.service';
+import { createCertificateService, createUploadCertificateService, type FabricGateway } from './certificate.service';
+import type { AuthenticatedIssuer } from './certificate.repository';
 
 type Call = {
   readonly mode: 'evaluate' | 'submit';
   readonly functionName: string;
   readonly args: readonly string[];
+};
+
+
+const authenticatedIssuer: AuthenticatedIssuer = {
+  issuerId: 'UNDIP',
+  organizationName: 'Universitas Diponegoro',
+  departmentName: 'Fakultas Kedokteran',
+  mspId: 'Org1MSP',
+  username: 'undip-admin',
+  email: 'admin@undip.test',
+  passwordHash: 'hash',
+  isActive: true,
+  status: 'ACTIVE'
 };
 
 function createMockGateway(results: Record<string, unknown> = {}): { gateway: FabricGateway; calls: Call[] } {
@@ -72,7 +87,7 @@ describe('certificate lifecycle chaincode mapping', () => {
       studentId: 'NIM-RAW-001',
       issuerId: 'DEMO_ISSUER',
       certificateType: 'DIPLOMA',
-      title: 'Bachelor Certificate',
+      degreeTitle: 'Bachelor Certificate',
       ipfsCid: 'bafy-certificate',
       issuedAt: '2026-06-18T00:00:00Z'
     });
@@ -119,7 +134,7 @@ describe('certificate lifecycle chaincode mapping', () => {
         studentIdHash: 'student-hash',
         issuerId: 'UNKNOWN',
         certificateType: 'DIPLOMA',
-        title: 'Bachelor Certificate',
+        degreeTitle: 'Bachelor Certificate',
         ipfsCid: 'bafy-certificate',
         issuedAt: '2026-06-18T00:00:00Z',
         expiredAt: ''
@@ -224,6 +239,7 @@ describe('certificate lifecycle chaincode mapping', () => {
         findCalls.push(certificateNumber);
         return null;
       },
+      createGateway: () => gateway,
       insertCertificate: async (data) => {
         uploaded.push(data as unknown as Record<string, unknown>);
         return {
@@ -296,10 +312,88 @@ describe('certificate lifecycle chaincode mapping', () => {
       { functionName: 'SmartContract:RegisterIssuer', args: ['UNDIP', 'Universitas Diponegoro', 'Fakultas Kedokteran', 'Org1MSP'] },
       {
         functionName: 'SmartContract:IssueCertificate',
-        args: ['CERT-UP-1', 'NO-UP-1', sha256Hex('NIM-001'), 'UNDIP', 'DIPLOMA', 'Sarjana Teknik', 'bafy-uploaded', 'bafy-uploaded', '2026-06-27', '']
+        args: ['CERT-UP-1', 'NO-UP-1', sha256Hex('NIM-001'), 'UNDIP', 'DIPLOMA', 'Sarjana Teknik', 'bafy-uploaded', '2026-06-27', '']
       }
     ]);
   });
+
+  it('uses the authenticated issuer MSP when uploading as Org2', async () => {
+    const selectedMsps: string[] = [];
+    const { gateway } = createMockGateway({ IssuerExists: false, IssueCertificate: true });
+    const uploadService = createUploadCertificateService({
+      createGateway: (mspId) => {
+        selectedMsps.push(mspId);
+        return gateway;
+      },
+      uploadToIPFS: async () => 'bafy-org2',
+      findCertificateByCertificateNumber: async () => null,
+      insertCertificate: async (data) => ({
+        id: 2,
+        certificateId: data.certificateId,
+        certificateNumber: data.certificateNumber,
+        issuerId: data.issuerId,
+        certificateType: data.certificateType,
+        degreeTitle: data.degreeTitle,
+        studentId: data.studentId,
+        studentName: data.studentName,
+        organizationName: data.organizationName,
+        faculty: data.faculty,
+        studyProgram: data.studyProgram,
+        educationLevel: data.educationLevel,
+        graduationDate: data.graduationDate || null,
+        ipfsCid: data.ipfsCid,
+        file_name: data.file_name,
+        mime_type: data.mime_type,
+        file_size: data.file_size,
+        ledger_tx_id: data.ledger_tx_id,
+        status: data.status,
+        issuedAt: data.issuedAt,
+        created_at: '2026-07-01T00:00:00.000Z',
+        updated_at: '2026-07-01T00:00:00.000Z',
+      })
+    });
+
+    await uploadService(
+      {
+        certificateId: 'CERT-ORG2-1',
+        certificateNumber: 'NO-ORG2-1',
+        issuerId: 'ORG2_ISSUER',
+        organizationName: 'Org2 University',
+        departmentName: 'QA',
+        mspId: 'Org2MSP',
+        certificateType: 'DIPLOMA',
+        degreeTitle: 'Sarjana Teknik',
+        studentId: 'NIM-ORG2',
+        studentName: 'Siti',
+        faculty: 'Fakultas Teknik',
+        studyProgram: 'Teknik Sipil',
+        educationLevel: 'S1',
+        issuedAt: '2026-06-27',
+      },
+      {
+        fieldname: 'file_ijazah',
+        originalname: 'ijazah.pdf',
+        encoding: '7bit',
+        mimetype: 'application/pdf',
+        size: 1234,
+        buffer: Buffer.from('pdf'),
+        stream: undefined as never,
+        destination: '',
+        filename: '',
+        path: ''
+      },
+      {
+        ...authenticatedIssuer,
+        issuerId: 'ORG2_ISSUER',
+        organizationName: 'Org2 University',
+        departmentName: 'QA',
+        mspId: 'Org2MSP'
+      }
+    );
+
+    assert.deepEqual(selectedMsps, ['Org2MSP']);
+  });
+
 });
 
 

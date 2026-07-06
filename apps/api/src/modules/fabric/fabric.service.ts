@@ -1,10 +1,36 @@
-import { fabricConfig } from '../../config/fabric.config';
+import { fabricConfig, getFabricConfig } from '../../config/fabric.config';
 import { FabricGatewayClient, type FabricSubmitResult } from '../../infrastructure/fabric/fabric-gateway.client';
 import type { FabricResult } from '../../infrastructure/fabric/fabric-result';
 import type { InvokeFabricBody } from './fabric.dto';
 import type { FabricHealth, FabricInvokeResult } from './fabric.types';
 
-const fabricClient = new FabricGatewayClient(fabricConfig);
+const fabricClients = new Map<string, FabricGatewayClient>();
+
+function getFabricClient(mspId = fabricConfig.mspId): FabricGatewayClient {
+  const config = getFabricConfig(mspId);
+  let client = fabricClients.get(config.mspId);
+
+  if (!client) {
+    client = new FabricGatewayClient(config);
+    fabricClients.set(config.mspId, client);
+  }
+
+  return client;
+}
+
+export function fabricGatewayForMsp(mspId: string) {
+  return {
+    evaluateTransaction(functionName: string, ...args: string[]): Promise<FabricResult> {
+      return evaluateTransactionForMsp(mspId, functionName, ...args);
+    },
+    submitTransaction(functionName: string, ...args: string[]): Promise<FabricResult> {
+      return submitTransactionForMsp(mspId, functionName, ...args);
+    },
+    submitTransactionWithTxId(functionName: string, ...args: string[]): Promise<FabricSubmitResult> {
+      return submitTransactionWithTxIdForMsp(mspId, functionName, ...args);
+    }
+  };
+}
 
 export async function getFabricHealth(): Promise<FabricHealth> {
   const demoIssuerExists = await evaluateTransaction('SmartContract:IssuerExists', 'DEMO_ISSUER');
@@ -29,20 +55,48 @@ export async function invokeFabric(input: InvokeFabricBody): Promise<FabricInvok
 }
 
 export async function evaluateTransaction(functionName: string, ...args: string[]): Promise<FabricResult> {
-  return fabricClient.evaluateTransaction(functionName, args);
+  return evaluateTransactionForMsp(fabricConfig.mspId, functionName, ...args);
 }
 
 export async function submitTransaction(functionName: string, ...args: string[]): Promise<FabricResult> {
-  return fabricClient.submitTransaction(functionName, args);
+  return submitTransactionForMsp(fabricConfig.mspId, functionName, ...args);
 }
 
 export async function submitTransactionWithTxId(
   functionName: string,
   ...args: string[]
 ): Promise<FabricSubmitResult> {
-  return fabricClient.submitTransactionWithTxId(functionName, args);
+  return submitTransactionWithTxIdForMsp(fabricConfig.mspId, functionName, ...args);
+}
+
+export async function evaluateTransactionForMsp(
+  mspId: string,
+  functionName: string,
+  ...args: string[]
+): Promise<FabricResult> {
+  return getFabricClient(mspId).evaluateTransaction(functionName, args);
+}
+
+export async function submitTransactionForMsp(
+  mspId: string,
+  functionName: string,
+  ...args: string[]
+): Promise<FabricResult> {
+  return getFabricClient(mspId).submitTransaction(functionName, args);
+}
+
+export async function submitTransactionWithTxIdForMsp(
+  mspId: string,
+  functionName: string,
+  ...args: string[]
+): Promise<FabricSubmitResult> {
+  return getFabricClient(mspId).submitTransactionWithTxId(functionName, args);
 }
 
 export function closeFabricClient(): void {
-  fabricClient.close();
+  for (const client of fabricClients.values()) {
+    client.close();
+  }
+
+  fabricClients.clear();
 }
