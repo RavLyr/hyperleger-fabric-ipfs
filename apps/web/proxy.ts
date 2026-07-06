@@ -14,10 +14,12 @@ export function proxy(request: NextRequest) {
   if (isAdminRoute) {
     if (!session) {
       const loginUrl = new URL("/login", request.url)
-      loginUrl.searchParams.set(
-        "callbackUrl",
-        `${pathname}${request.nextUrl.search}`
-      )
+      const callbackUrl =
+        pathname === "/admin"
+          ? "/admin/ijazah"
+          : pathname + request.nextUrl.search
+
+      loginUrl.searchParams.set("callbackUrl", callbackUrl)
 
       return NextResponse.redirect(loginUrl)
     }
@@ -27,5 +29,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*"],
 }
