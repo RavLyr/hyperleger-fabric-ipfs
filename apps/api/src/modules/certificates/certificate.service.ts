@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from '../../errors/AppError';
 import type { FabricResult } from '../../infrastructure/fabric/fabric-result';
 import { uploadToIPFS } from '../../infrastructure/ipfs/ipfs.service';
+import { fabricGatewayForMsp } from '../fabric/fabric.service';
 import { sha256Hex } from '../../utils/hash';
 import { evaluateTransaction, submitTransaction, submitTransactionWithTxId } from '../fabric/fabric.service';
 import type {
@@ -18,6 +19,7 @@ import {
   findCertificateByCertificateNumber,
   insertCertificate,
   markCertificateRevoked,
+  type AuthenticatedIssuer,
 } from './certificate.repository';
 
 export type FabricGateway = {
@@ -214,7 +216,84 @@ export function createCertificateService(gateway: FabricGateway = defaultGateway
 
 export const certificateService = createCertificateService();
 
-export async function uploadCertificate(
+export type UploadCertificateDependencies = {
+  readonly uploadToIPFS: (buffer: Buffer, fileName: string) => Promise<string>;
+  readonly findCertificateByCertificateNumber: typeof findCertificateByCertificateNumber;
+  readonly insertCertificate: typeof insertCertificate;
+  readonly createGateway: (mspId: string) => FabricGateway;
+};
+
+const uploadDependencies: UploadCertificateDependencies = {
+  uploadToIPFS,
+  findCertificateByCertificateNumber,
+  insertCertificate,
+  createGateway: fabricGatewayForMsp
+};
+
+export function createUploadCertificateService(dependencies: UploadCertificateDependencies = uploadDependencies) {
+  return async function uploadCertificateWithDependencies(
+    body: RawBody,
+    file: Express.Multer.File | undefined,
+    authenticatedIssuer: AuthenticatedIssuer
+  ): Promise<Certificate> {
+    if (!file) {
+      throw new Error('file_ijazah is required');
+    }
+
+    const input = validateCertificateBody({
+      ...body,
+      issuerId: authenticatedIssuer.issuerId,
+      organizationName: authenticatedIssuer.organizationName,
+      departmentName: authenticatedIssuer.departmentName,
+      mspId: authenticatedIssuer.mspId
+    });
+    const existingCertificate = await dependencies.findCertificateByCertificateNumber(input.certificateNumber);
+
+    if (existingCertificate) {
+      throw new Error(`certificateNumber already exists: ${input.certificateNumber}`);
+    }
+
+    const gateway = dependencies.createGateway(authenticatedIssuer.mspId);
+    const service = createCertificateService(gateway);
+    const ipfsCid = await dependencies.uploadToIPFS(file.buffer, file.originalname);
+    const issuerExists = await service.issuerExists(input.issuerId);
+
+    if (!isTrueFabricResult(issuerExists)) {
+      await service.registerIssuer({
+        issuerId: input.issuerId,
+        organizationName: input.organizationName,
+        departmentName: input.departmentName,
+        mspId: input.mspId,
+      });
+    }
+
+    const fabricTransaction = await service.issueCertificateWithTxId({
+      certificateId: input.certificateId,
+      certificateNumber: input.certificateNumber,
+      studentIdHash: sha256Hex(input.studentId),
+      issuerId: input.issuerId,
+      certificateType: input.certificateType,
+      title: input.degreeTitle,
+      ipfsCid,
+      issuedAt: input.issuedAt,
+      expiredAt: ''
+    });
+
+    return dependencies.insertCertificate({
+      ...input,
+      ipfsCid,
+      file_name: file.originalname,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      ledger_tx_id: fabricTransaction.transactionId,
+      status: 'VALID',
+    });
+  };
+}
+
+export const uploadCertificate = createUploadCertificateService();
+
+export async function uploadCertificateLegacy(
   body: RawBody,
   file: Express.Multer.File | undefined
 ): Promise<Certificate> {
@@ -223,52 +302,26 @@ export async function uploadCertificate(
   }
 
   const input = validateCertificateBody(body);
-  const existingCertificate = await findCertificateByCertificateNumber(input.certificateNumber);
 
-  if (existingCertificate) {
-    throw new Error(`certificateNumber already exists: ${input.certificateNumber}`);
-  }
-
-  const ipfsCid = await uploadToIPFS(file.buffer, file.originalname);
-  const issuerExists = await certificateService.issuerExists(input.issuerId);
-
-  if (!isTrueFabricResult(issuerExists)) {
-    await certificateService.registerIssuer({
-      issuerId: input.issuerId,
-      organizationName: input.organizationName,
-      departmentName: input.departmentName,
-      mspId: input.mspId,
-    });
-  }
-
-  const fabricTransaction = await certificateService.issueCertificateWithTxId({
-    certificateId: input.certificateId,
-    certificateNumber: input.certificateNumber,
-    studentIdHash: sha256Hex(input.studentId),
+  return uploadCertificate(body, file, {
     issuerId: input.issuerId,
-    certificateType: input.certificateType,
-    title: input.degreeTitle,
-    ipfsCid,
-    issuedAt: input.issuedAt,
-    expiredAt: ''
-  });
-
-  return insertCertificate({
-    ...input,
-    ipfsCid,
-    file_name: file.originalname,
-    mime_type: file.mimetype,
-    file_size: file.size,
-    ledger_tx_id: fabricTransaction.transactionId,
-    status: 'VALID',
+    organizationName: input.organizationName,
+    departmentName: input.departmentName,
+    mspId: input.mspId,
+    username: '',
+    email: '',
+    passwordHash: '',
+    isActive: true,
+    status: 'ACTIVE'
   });
 }
 
-export async function revokeCertificateAndSync(input: RevokeCertificateInput): Promise<{
+export async function revokeCertificateAndSync(input: RevokeCertificateInput, mspId?: string): Promise<{
   readonly fabricResult: FabricResult;
   readonly certificate: Certificate;
 }> {
-  const fabricTransaction = await certificateService.revokeCertificateWithTxId(input);
+  const service = mspId ? createCertificateService(fabricGatewayForMsp(mspId)) : certificateService;
+  const fabricTransaction = await service.revokeCertificateWithTxId(input);
   const certificate = await markCertificateRevoked({
     certificateId: input.certificateId,
     reasonHash: input.reasonHash,

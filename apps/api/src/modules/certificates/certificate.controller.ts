@@ -8,12 +8,15 @@ import {
   parseRevokeCertificateBody,
   parseVerifyCertificateBody,
 } from './certificate.dto';
-import { certificateService,
-    getAllCertificatesService,
-    revokeCertificateAndSync,
-    uploadCertificate,
-    verifyCertificateService   , } from './certificate.service';
+import {
+  certificateService,
+  getAllCertificatesService,
+  revokeCertificateAndSync,
+  uploadCertificate,
+  verifyCertificateService,
+} from './certificate.service';
 import { getIPFSGatewayUrl } from '../../infrastructure/ipfs/ipfs.service';
+import { AppError } from '../../errors/AppError';
 
 function removeDocumentHash<T extends object>(certificate: T): Omit<T, 'documentHash'> {
   const { documentHash: _documentHash, ...cleanCertificate } = certificate as T & { readonly documentHash?: unknown };
@@ -85,7 +88,14 @@ export async function verifyCertificate(req: Request, res: Response): Promise<vo
 
 export async function revokeCertificate(req: Request, res: Response): Promise<void> {
   const input = parseRevokeCertificateBody(req.params, req.body as unknown);
-  const result = await revokeCertificateAndSync(input);
+  const issuer = req.auth!.issuer;
+  const certificate = await certificateService.getCertificate(input.certificateId) as { readonly issuerId?: string };
+
+  if (certificate.issuerId !== issuer.issuerId) {
+    throw new AppError('You can only revoke certificates for your own issuer', 403);
+  }
+
+  const result = await revokeCertificateAndSync(input, issuer.mspId);
 
   res.json({
     success: true,
@@ -133,10 +143,13 @@ export async function uploadCertificateController(
   req: Request,
   res: Response
 ): Promise<void> {
-  if (req.body.issuerId !== req.auth!.issuer.issuerId) {
-    throw new Error('You can only upload certificates for your own issuer');
+  const issuer = req.auth!.issuer;
+
+  if (req.body.issuerId !== issuer.issuerId || req.body.mspId !== issuer.mspId) {
+    throw new AppError('You can only upload certificates for your own issuer', 403);
   }
-  const certificate = await uploadCertificate(req.body, req.file);
+
+  const certificate = await uploadCertificate(req.body, req.file, issuer);
   const cleanData = removeDocumentHash(certificate);
 
   res.status(201).json({

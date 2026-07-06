@@ -29,7 +29,7 @@ certificateRoutes.get(
   asyncHandler(certificateController.certificateExists)
 );
 certificateRoutes.post('/certificates/:certificateId/verify', asyncHandler(certificateController.verifyCertificate));
-certificateRoutes.post('/certificates/:certificateId/revoke', asyncHandler(certificateController.revokeCertificate));
+certificateRoutes.post('/certificates/:certificateId/revoke', requireIssuerAdmin(), asyncHandler(certificateController.revokeCertificate));
 certificateRoutes.get(
   '/certificates/:certificateId/revocation',
   asyncHandler(certificateController.getRevocationInfo)

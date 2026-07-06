@@ -99,6 +99,18 @@ services:
       FABRIC_TLS_CERT_PATH: ${FABRIC_TLS_CERT_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem}
       FABRIC_CLIENT_CERT_PATH: ${FABRIC_CLIENT_CERT_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp/signcerts/org1-admin-cert.pem}
       FABRIC_CLIENT_KEY_PATH: ${FABRIC_CLIENT_KEY_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp/keystore/org1-admin-key.pem}
+      FABRIC_ORG1_MSP_ID: ${FABRIC_ORG1_MSP_ID:-Org1MSP}
+      FABRIC_ORG1_PEER_ENDPOINT: ${FABRIC_ORG1_PEER_ENDPOINT:-peer1org1.example.com:7051}
+      FABRIC_ORG1_PEER_TLS_HOST_OVERRIDE: ${FABRIC_ORG1_PEER_TLS_HOST_OVERRIDE:-peer1org1.example.com}
+      FABRIC_ORG1_TLS_CERT_PATH: ${FABRIC_ORG1_TLS_CERT_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer1.org1.ravly.com/tls/cacerts/localhost-7054.pem}
+      FABRIC_ORG1_CLIENT_CERT_PATH: ${FABRIC_ORG1_CLIENT_CERT_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp/signcerts/org1-admin-cert.pem}
+      FABRIC_ORG1_CLIENT_KEY_PATH: ${FABRIC_ORG1_CLIENT_KEY_PATH:-/fabric-crypto/peerOrganizations/org1.example.com/peers/peer0.org1.ravly.com/msp/keystore/org1-admin-key.pem}
+      FABRIC_ORG2_MSP_ID: ${FABRIC_ORG2_MSP_ID:-Org2MSP}
+      FABRIC_ORG2_PEER_ENDPOINT: ${FABRIC_ORG2_PEER_ENDPOINT:-peer2org2.example.com:8051}
+      FABRIC_ORG2_PEER_TLS_HOST_OVERRIDE: ${FABRIC_ORG2_PEER_TLS_HOST_OVERRIDE:-peer2org2.example.com}
+      FABRIC_ORG2_TLS_CERT_PATH: ${FABRIC_ORG2_TLS_CERT_PATH:-/fabric-crypto/peerOrganizations/org2.example.com/peers/peer2.org2.ravly.com/tls/cacerts/localhost-8054.pem}
+      FABRIC_ORG2_CLIENT_CERT_PATH: ${FABRIC_ORG2_CLIENT_CERT_PATH:-/fabric-crypto/peerOrganizations/org2.example.com/peers/peer0.org2.ravly.com/msp/signcerts/org2-admin-cert.pem}
+      FABRIC_ORG2_CLIENT_KEY_PATH: ${FABRIC_ORG2_CLIENT_KEY_PATH:-/fabric-crypto/peerOrganizations/org2.example.com/peers/peer0.org2.ravly.com/msp/keystore/87d6baece02c90f084ca01b1a74be1d5c467aa3fefcd061334628620862d1ec1_sk}
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
