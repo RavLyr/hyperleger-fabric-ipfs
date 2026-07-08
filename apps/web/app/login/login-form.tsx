@@ -67,7 +67,7 @@ export default function LoginForm() {
         return
       }
 
-      window.location.href = callbackUrl
+      window.location.replace(callbackUrl)
     } catch {
       setMessage("Gagal menghubungi server.")
     } finally {

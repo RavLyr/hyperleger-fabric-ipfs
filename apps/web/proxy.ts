@@ -6,10 +6,15 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isAdminRoute = pathname.startsWith("/admin")
+  const isLoginRoute = pathname === "/login"
   const session = getValidAuthSession({
     accessToken: request.cookies.get(AUTH_COOKIES.accessToken)?.value,
     adminSession: request.cookies.get(AUTH_COOKIES.adminSession)?.value,
   })
+
+  if (isLoginRoute && session) {
+    return NextResponse.redirect(new URL("/admin/ijazah", request.url))
+  }
 
   if (isAdminRoute) {
     if (!session) {
@@ -29,5 +34,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/login"],
 }
