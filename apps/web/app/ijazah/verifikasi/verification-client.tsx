@@ -889,7 +889,7 @@ export default function VerificationClient() {
                       className="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
                     >
                       <ArrowSquareOut className="h-5 w-5" />
-                      Buka Dokumen IPFS
+                      Lihat Ijazah
                     </a>
                   )}
                 </div>

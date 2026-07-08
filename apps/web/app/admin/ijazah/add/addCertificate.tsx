@@ -13,6 +13,8 @@ import {
   UploadSimple,
 } from "@phosphor-icons/react"
 
+const fieldControlClassName = "mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+
 export default function AddCertificate() {
   const formRef = useRef<HTMLFormElement>(null)
   const confirmedSubmitRef = useRef(false)
@@ -20,6 +22,8 @@ export default function AddCertificate() {
   const [fileName, setFileName] = useState("")
   const [selectedFaculty, setSelectedFaculty] = useState("")
   const [selectedStudyProgram, setSelectedStudyProgram] = useState("")
+  const [graduationDate, setGraduationDate] = useState("")
+  const [issuedAt, setIssuedAt] = useState("")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -56,6 +60,16 @@ export default function AddCertificate() {
   function handleFacultyChange(event: React.ChangeEvent<HTMLSelectElement>) {
     setSelectedFaculty(event.target.value)
     setSelectedStudyProgram("")
+  }
+
+  function handleGraduationDateChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value
+
+    setGraduationDate(value)
+
+    if (!value) {
+      setIssuedAt("")
+    }
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -148,23 +162,13 @@ export default function AddCertificate() {
                 required
               />
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700">
-                  Jenis Ijazah
-                </label>
-
-                <select
-                  name="certificateType"
-                  required
-                  defaultValue="IJAZAH"
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                >
-                  <option value="IJAZAH">IJAZAH</option>
-                  <option value="DIPLOMA">DIPLOMA</option>
-                  <option value="CERTIFICATE">CERTIFICATE</option>
-                  <option value="TRANSCRIPT">TRANSCRIPT</option>
-                </select>
-              </div>
+              <Field
+                label="Jenis Ijazah"
+                name="certificateType"
+                placeholder="Contoh: IJAZAH"
+                defaultValue="IJAZAH"
+                required
+              />
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
@@ -176,7 +180,7 @@ export default function AddCertificate() {
                   required
                   value={selectedFaculty}
                   onChange={handleFacultyChange}
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className={fieldControlClassName}
                 >
                   <option value="">Pilih fakultas</option>
 
@@ -201,7 +205,7 @@ export default function AddCertificate() {
                   onChange={(event) =>
                     setSelectedStudyProgram(event.target.value)
                   }
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className={fieldControlClassName}
                 >
                   <option value="">
                     {selectedFaculty
@@ -232,7 +236,7 @@ export default function AddCertificate() {
                   readOnly
                   value={selectedProgram?.educationLevel ?? ""}
                   placeholder="Otomatis terisi"
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm text-slate-700 outline-none"
+                  className={`${fieldControlClassName} bg-slate-100 text-slate-700`}
                 />
               </div>
 
@@ -248,7 +252,7 @@ export default function AddCertificate() {
                   readOnly
                   value={selectedProgram?.degreeTitle ?? ""}
                   placeholder="Otomatis terisi setelah program studi dipilih"
-                  className="mt-2 w-full rounded-lg border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm text-slate-700 outline-none"
+                  className={`${fieldControlClassName} bg-slate-100 text-slate-700`}
                 />
               </div>
 
@@ -256,12 +260,18 @@ export default function AddCertificate() {
                 label="Tanggal Lulus"
                 name="graduationDate"
                 type="date"
+                value={graduationDate}
+                onChange={handleGraduationDateChange}
+                required
               />
 
               <Field
                 label="Tanggal Terbit"
                 name="issuedAt"
                 type="date"
+                value={issuedAt}
+                onChange={(event) => setIssuedAt(event.target.value)}
+                disabled={!graduationDate}
                 required
               />
 
@@ -314,17 +324,10 @@ export default function AddCertificate() {
                 disabled={isSubmitting}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSubmitting ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Memproses Data Ijazah...
-                  </>
-                ) : (
-                  <>
-                    <FloppyDisk className="h-4 w-4" />
-                    Simpan & Generate QR
-                  </>
-                )}
+                <>
+                  <FloppyDisk className="h-4 w-4" />
+                  Simpan & Generate QR
+                </>
               </button>
             </div>
           </form>
@@ -332,7 +335,6 @@ export default function AddCertificate() {
       </main>
 
       <Footer />
-
       {showConfirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-6">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
@@ -387,6 +389,9 @@ function Field({
   name,
   type = "text",
   placeholder,
+  defaultValue,
+  value,
+  onChange,
   required = false,
   disabled = false,
 }: {
@@ -394,6 +399,9 @@ function Field({
   name: string
   type?: string
   placeholder?: string
+  defaultValue?: string
+  value?: string
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
   required?: boolean
   disabled?: boolean
 }) {
@@ -405,9 +413,12 @@ function Field({
         name={name}
         type={type}
         placeholder={placeholder}
+        defaultValue={defaultValue}
+        value={value}
+        onChange={onChange}
         required={required}
         disabled={disabled}
-        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+        className={fieldControlClassName}
       />
     </div>
   )
