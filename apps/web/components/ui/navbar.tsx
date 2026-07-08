@@ -7,7 +7,7 @@ import { Certificate } from "@phosphor-icons/react"
 const navItems = [
   {
     label: "Verifikasi",
-    href: "/verifikasi",
+    href: "/",
   }
 ]
 
