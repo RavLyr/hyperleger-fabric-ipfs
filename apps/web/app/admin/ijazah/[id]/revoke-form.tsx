@@ -5,10 +5,12 @@ import { revokeDiploma } from "./actions"
 
 type RevokeDiplomaFormProps = {
   certificateId: string
+  studentName: string
 }
 
 export default function RevokeDiplomaForm({
   certificateId,
+  studentName,
 }: RevokeDiplomaFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const confirmedSubmitRef = useRef(false)
@@ -89,14 +91,12 @@ export default function RevokeDiplomaForm({
 
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               Apakah kamu yakin ingin mencabut ijazah ini? Setelah ijazah
-              direvoke, status ijazah akan berubah menjadi tidak valid dan data
-              verifikasi publik akan menampilkan status pencabutan.
+              direvoke, status ijazah akan berubah menjadi tidak valid.
             </p>
 
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
               <p className="text-sm font-semibold text-red-700">
-                Tindakan ini bersifat penting dan tidak boleh dilakukan jika data
-                masih benar.
+                Revoke ijazah atas {studentName}.
               </p>
             </div>
 

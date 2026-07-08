@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { CheckCircle, WarningCircle } from "@phosphor-icons/react/dist/ssr"
 import { verifyCertificateByNumber } from "@/lib/backend-api/certificates"
@@ -130,17 +129,6 @@ export default async function PublicQrCertificatePage({
         </header>
 
         <section className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center">
-            <Image
-              src="/logo-undip.png"
-              alt="Logo Universitas Diponegoro"
-              width={96}
-              height={96}
-              className="h-full w-full object-contain"
-              priority
-            />
-          </div>
-
           <h2 className="text-lg font-medium uppercase tracking-wide text-slate-700">
             {organizationName}
           </h2>
@@ -196,33 +184,6 @@ export default async function PublicQrCertificatePage({
             label="Issuer ID"
             value={
               <span className="font-mono text-xs">{certificate.issuerId}</span>
-            }
-          />
-
-          <DataRow
-            label="Certificate ID"
-            value={
-              <span className="break-all font-mono text-xs">
-                {certificate.certificateId}
-              </span>
-            }
-          />
-
-          <DataRow
-            label="IPFS CID"
-            value={
-              <span className="break-all font-mono text-xs">
-                {certificate.ipfsCid}
-              </span>
-            }
-          />
-
-          <DataRow
-            label="Ledger TX ID"
-            value={
-              <span className="break-all font-mono text-xs">
-                {certificate.ledger_tx_id ?? "-"}
-              </span>
             }
           />
         </section>

@@ -433,7 +433,10 @@ export default async function AdminDiplomaDetailPage({
           ) : (
             // <form
         
-            <RevokeDiplomaForm certificateId={certificate.certificateId} />
+            <RevokeDiplomaForm
+              certificateId={certificate.certificateId}
+              studentName={dbCertificate?.studentName ?? "mahasiswa ini"}
+            />
           )}
         </section>
       </main>
