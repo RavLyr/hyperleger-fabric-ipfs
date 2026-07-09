@@ -131,7 +131,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
 
   return (
     <AdminShell>
-      <main className="mx-auto w-full max-w-7xl px-6 py-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10">
         <section className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">

@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 export default function Footer() {
   return (
     <footer className="mt-auto w-full border-t border-slate-200 bg-white">
