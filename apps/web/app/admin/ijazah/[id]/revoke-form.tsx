@@ -17,6 +17,10 @@ export default function RevokeDiplomaForm({
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirmationText, setConfirmationText] = useState("")
+
+  const REQUIRED_CONFIRMATION_TEXT = "Revoke this certificate"
+  const isConfirmationValid = confirmationText.trim() === REQUIRED_CONFIRMATION_TEXT
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (confirmedSubmitRef.current) {
@@ -31,6 +35,7 @@ export default function RevokeDiplomaForm({
   function handleCancelRevoke() {
     setShowConfirmDialog(false)
     setIsSubmitting(false)
+    setConfirmationText("")
     confirmedSubmitRef.current = false
   }
 
@@ -90,14 +95,26 @@ export default function RevokeDiplomaForm({
             </h2>
 
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Apakah kamu yakin ingin mencabut ijazah ini? Setelah ijazah
-              direvoke, status ijazah akan berubah menjadi tidak valid.
+              Apakah kamu yakin ingin mencabut ijazah ini?
             </p>
 
-            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+            {/* <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
               <p className="text-sm font-semibold text-red-700">
                 Revoke ijazah atas {studentName}.
               </p>
+            </div> */}
+
+            <div className="mt-4">
+              <p className="mb-2 text-sm font-medium text-slate-700">
+                Ketik <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-red-700">Revoke this certificate</code> untuk mengkonfirmasi
+              </p>
+              <input
+                type="text"
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-100"
+                placeholder="Ketik konfirmasi..."
+              />
             </div>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -112,7 +129,8 @@ export default function RevokeDiplomaForm({
               <button
                 type="button"
                 onClick={handleConfirmRevoke}
-                className="rounded-lg bg-red-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+                disabled={!isConfirmationValid}
+                className="rounded-lg bg-red-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Ya, Revoke Ijazah
               </button>

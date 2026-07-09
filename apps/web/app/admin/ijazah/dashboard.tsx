@@ -132,35 +132,36 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
   return (
     <AdminShell>
       <main className="mx-auto w-full max-w-7xl px-6 py-10">
-        <section className="mb-14 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
+        <section className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
               Data Ijazah
             </h1>
-
-            <div className="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
-              <p className="font-medium text-slate-500">Login sebagai:</p>
-              <p className="mt-1 break-words font-bold text-slate-950">
-                {issuerName}
+            <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-slate-500">
+              <p>
+                Login sebagai: <span className="font-semibold text-slate-700">{issuerName}</span>
               </p>
               {session.issuerId && (
-                <p className="mt-1 break-all text-xs font-semibold text-slate-500">
-                  Issuer ID: {session.issuerId}
-                </p>
+                <>
+                  <span className="hidden sm:inline text-slate-300">•</span>
+                  <p>
+                    Issuer ID: <span className="font-mono text-slate-700">{session.issuerId}</span>
+                  </p>
+                </>
               )}
             </div>
           </div>
 
           <Link
             href="/admin/ijazah/add"
-            className="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
           >
             <Plus weight="bold" className="h-4 w-4" />
             Tambah Ijazah
           </Link>
         </section>
 
-        <section className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <section className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
             <div className="mb-4 flex items-start justify-between">
               <span className="text-sm font-medium text-slate-600">
