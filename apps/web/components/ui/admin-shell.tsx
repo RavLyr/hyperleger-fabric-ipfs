@@ -7,7 +7,7 @@ type AdminShellProps = {
 
 export default function AdminShell({ children }: AdminShellProps) {
   return (
-    <div className="relative isolate min-h-dvh w-full overflow-x-hidden bg-slate-50 text-slate-900">
+    <div className="relative isolate flex min-h-dvh w-full flex-col overflow-x-hidden bg-slate-50 text-slate-900">
       <div
         aria-hidden="true"
         className="fixed inset-0 -z-10"

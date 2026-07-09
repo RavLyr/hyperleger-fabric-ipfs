@@ -5,7 +5,6 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { useSearchParams } from "next/navigation"
 import {
   ArrowSquareOut,
-  FileArrowUp,
   MagnifyingGlass,
   QrCode,
   Scan,
@@ -119,22 +118,6 @@ function formatDisplayDate(value?: string | null) {
     month: "long",
     year: "numeric",
   }).format(date)
-}
-
-function formatFileSize(value?: number | null) {
-  if (!value) {
-    return null
-  }
-
-  if (value < 1024) {
-    return `${value} B`
-  }
-
-  if (value < 1024 * 1024) {
-    return `${(value / 1024).toFixed(1)} KB`
-  }
-
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function extractQrValue(value: string) {
@@ -546,7 +529,7 @@ export default function VerificationClient() {
 
   return (
     <PublicShell>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-16">
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-10 px-6 py-16">
         <section className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-700">
             <ShieldCheck weight="fill" className="h-4 w-4" />
@@ -863,20 +846,8 @@ export default function VerificationClient() {
                       />
 
                       <DetailItem
-                        label="Status Ledger"
+                        label="Status"
                         value={diploma.ledgerData?.status ?? finalStatus}
-                      />
-
-                      <DetailItem
-                        label="File"
-                        value={diploma.file_name ?? diploma.uploadedFileName}
-                      />
-
-                      <DetailItem
-                        label="Ukuran File"
-                        value={formatFileSize(
-                          diploma.file_size ?? diploma.uploadedFileSize
-                        )}
                       />
                     </div>
                   </div>

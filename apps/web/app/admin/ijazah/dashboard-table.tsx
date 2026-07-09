@@ -98,18 +98,6 @@ function includesQuery(value: unknown, q: string) {
   return String(value ?? "").toLowerCase().includes(q.toLowerCase())
 }
 
-function getCertificateTitle(certificate: DatabaseCertificate) {
-  return certificate.degreeTitle ?? certificate.title ?? "-"
-}
-
-function getOrganizationName(certificate: DatabaseCertificate) {
-  return (
-    certificate.organizationName ??
-    certificate.universityName ??
-    "-"
-  )
-}
-
 function matchSearch(certificate: DatabaseCertificate, q: string) {
   if (!q) return true
 
@@ -143,28 +131,6 @@ function sortCertificates(certificates: DatabaseCertificate[]) {
 
     return dateB - dateA
   })
-}
-
-function formatDate(value: Date | string | null | undefined) {
-  if (!value) return "-"
-
-  const date = value instanceof Date ? value : new Date(value)
-
-  if (Number.isNaN(date.getTime())) return "-"
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date)
-}
-
-function formatFileSize(value?: number | null) {
-  if (!value) return "-"
-  if (value < 1024) return `${value} B`
-  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
-
-  return `${(value / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function updateUrl(q: string, status: StatusFilter, page: number, perPage: number) {
@@ -266,7 +232,7 @@ export default function AdminDashboardTable({
           <input
             value={qDraft}
             onChange={(event) => setQDraft(event.target.value)}
-            placeholder="Cari nama, NIM, nomor ijazah, prodi, atau tahun lulus..."
+            placeholder="Cari nama, nomor ijazah, prodi, atau tahun lulus..."
             className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
 
@@ -317,22 +283,10 @@ export default function AdminDashboardTable({
                 Nama
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                NIM
+                Program Studi
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Degree Title
-              </th>
-              <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Program
-              </th>
-              <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Issuer
-              </th>
-              <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                File
-              </th>
-              <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Terbit
+                Fakultas
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Status
@@ -360,18 +314,6 @@ export default function AdminDashboardTable({
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <span className="font-mono text-xs text-slate-500">
-                      {diploma.studentId || "-"}
-                    </span>
-                  </td>
-
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="font-semibold text-slate-700">
-                      {getCertificateTitle(diploma)}
-                    </span>
-                  </td>
-
-                  <td className="whitespace-nowrap px-6 py-4">
                     <span className="font-semibold text-slate-700">
                       {diploma.studyProgram || "-"}
                     </span>
@@ -379,18 +321,8 @@ export default function AdminDashboardTable({
 
                   <td className="whitespace-nowrap px-6 py-4">
                     <span className="font-semibold text-slate-700">
-                      {getOrganizationName(diploma)}
+                      {diploma.faculty || "-"}
                     </span>
-                  </td>
-
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="max-w-[180px] truncate block font-semibold text-slate-700" title={diploma.file_name || "-"}>
-                      {diploma.file_name || "-"}
-                    </span>
-                  </td>
-
-                  <td className="whitespace-nowrap px-6 py-4 text-slate-600">
-                    {formatDate(diploma.issuedAt)}
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
@@ -412,7 +344,7 @@ export default function AdminDashboardTable({
             ) : (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={6}
                   className="px-6 py-12 text-center text-sm text-slate-500"
                 >
                   {q || status !== "ALL"

@@ -274,7 +274,7 @@ export default async function AdminDiplomaDetailPage({
 
   return (
     <AdminShell>
-      <main className="mx-auto w-full max-w-5xl px-6 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
         <div className="mb-8">
           <Link
             href="/admin/ijazah"
@@ -296,13 +296,8 @@ export default async function AdminDiplomaDetailPage({
             />
 
             <DetailItem
-              label="NIM / Student ID"
+              label="NIM"
               value={dbCertificate?.studentId ?? "-"}
-            />
-
-            <DetailItem
-              label="Certificate ID"
-              value={certificate.certificateId}
             />
 
             <DetailItem
@@ -354,57 +349,12 @@ export default async function AdminDiplomaDetailPage({
               value={issuer?.departmentName ?? "-"}
             />
 
-            <DetailItem label="MSP ID" value={issuer?.mspId ?? "-"} />
-
-            <DetailItem
-              label="IPFS CID"
-              value={certificate.ipfsCid ?? dbCertificate?.ipfsCid ?? "-"}
-            />
-
-            <DetailItem
-              label="File Ijazah"
-              value={dbCertificate?.file_name ?? "-"}
-            />
-
-            <DetailItem
-              label="Ukuran File"
-              value={
-                dbCertificate?.file_size
-                  ? `${dbCertificate.file_size} bytes`
-                  : "-"
-              }
-            />
-
             <DetailItem
               label="Tanggal Terbit"
               value={formatOnlyDate(
                 dbCertificate?.issuedAt ?? certificate.issuedAt
               )}
             />
-
-            <DetailItem
-              label="Dibuat Pada"
-              value={formatDate(dbCertificate?.created_at)}
-            />
-
-            <DetailItem
-              label="Diupdate Pada"
-              value={formatDate(
-                dbCertificate?.updated_at ?? certificate.updatedAt
-              )}
-            />
-
-            <DetailItem
-              label="Ledger TX ID"
-              value={dbCertificate?.ledger_tx_id ?? "-"}
-            />
-
-            {certificate.studentIdHash && (
-              <DetailItem
-                label="Student ID Hash"
-                value={certificate.studentIdHash}
-              />
-            )}
           </div>
         </section>
 
