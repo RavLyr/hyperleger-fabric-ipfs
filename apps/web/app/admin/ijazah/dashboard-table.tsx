@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react"
 import type { DatabaseCertificate } from "@/lib/backend-api/types"
 
-const allowedPerPage = [10, 25, 50] as const
+const allowedPerPage = [5, 10, 25, 50] as const
 
 type StatusFilter = "ALL" | "VALID" | "REVOKED"
 
@@ -52,7 +52,7 @@ function matchStatus(certificate: DatabaseCertificate, status: StatusFilter) {
 function getStatusBadge(status?: string | null) {
   if (isValidStatus(status)) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
         <ShieldCheck weight="fill" className="h-3.5 w-3.5" />
         VALID
       </span>
@@ -106,7 +106,6 @@ function getOrganizationName(certificate: DatabaseCertificate) {
   return (
     certificate.organizationName ??
     certificate.universityName ??
-    certificate.issuerId ??
     "-"
   )
 }
@@ -315,7 +314,10 @@ export default function AdminDashboardTable({
                 Certificate Number
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Nama / NIM
+                Nama
+              </th>
+              <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                NIM
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Degree Title
@@ -346,65 +348,45 @@ export default function AdminDashboardTable({
               diplomas.map((diploma) => (
                 <tr key={diploma.certificateId} className="transition hover:bg-slate-50">
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="font-mono text-xs font-bold text-slate-900">
+                    <span className="font-mono text-xs font-bold text-slate-900 truncate max-w-[160px] block" title={diploma.certificateNumber || "-"}>
                       {diploma.certificateNumber || "-"}
-                    </p>
-                    <p className="mt-1 font-mono text-[11px] text-slate-500">
-                      {diploma.certificateId || "-"}
-                    </p>
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-900">
                       {diploma.studentName || "-"}
-                    </p>
-                    <p className="mt-1 font-mono text-xs text-slate-500">
+                    </span>
+                  </td>
+
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <span className="font-mono text-xs text-slate-500">
                       {diploma.studentId || "-"}
-                    </p>
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700">
                       {getCertificateTitle(diploma)}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {diploma.certificateType || "IJAZAH"}
-                    </p>
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700">
                       {diploma.studyProgram || "-"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {diploma.faculty || "-"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {diploma.educationLevel || "-"}
-                    </p>
-                    {diploma.graduationDate ? (
-                      <p className="mt-1 text-xs text-slate-400">
-                        Lulus: {formatDate(diploma.graduationDate)}
-                      </p>
-                    ) : null}
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700">
                       {getOrganizationName(diploma)}
-                    </p>
-                    <p className="mt-1 font-mono text-xs text-slate-500">
-                      {diploma.issuerId || "-"}
-                    </p>
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4">
-                    <p className="max-w-[180px] truncate font-semibold text-slate-700">
+                    <span className="max-w-[180px] truncate block font-semibold text-slate-700" title={diploma.file_name || "-"}>
                       {diploma.file_name || "-"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {formatFileSize(diploma.file_size)}
-                    </p>
+                    </span>
                   </td>
 
                   <td className="whitespace-nowrap px-6 py-4 text-slate-600">
@@ -430,7 +412,7 @@ export default function AdminDashboardTable({
             ) : (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-6 py-12 text-center text-sm text-slate-500"
                 >
                   {q || status !== "ALL"
@@ -464,11 +446,10 @@ export default function AdminDashboardTable({
               key={pageNumber}
               type="button"
               onClick={() => goToPage(pageNumber)}
-              className={`rounded px-3 py-1 text-sm font-bold transition ${
-                pageNumber === currentPage
+              className={`rounded px-3 py-1 text-sm font-bold transition ${pageNumber === currentPage
                   ? "bg-blue-700 text-white"
                   : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
+                }`}
             >
               {pageNumber}
             </button>
