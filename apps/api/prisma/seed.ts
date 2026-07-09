@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     where: { issuerId: 'UNDIP' },
     update: {
       organizationName: 'Universitas Diponegoro',
-      departmentName: 'Fakultas Teknik',
+      departmentName: '',
       mspId: 'Org1MSP',
       username: 'admin',
       email: 'admin@undip.ac.id',
@@ -21,11 +21,38 @@ async function main(): Promise<void> {
     create: {
       issuerId: 'UNDIP',
       organizationName: 'Universitas Diponegoro',
-      departmentName: 'Fakultas Teknik',
+      departmentName: '',
       mspId: 'Org1MSP',
       username: 'admin',
       email: 'admin@undip.ac.id',
       passwordHash,
+      isActive: true,
+      status: 'ACTIVE'
+    }
+  });
+
+  const passwordHashOrg2 = await bcrypt.hash('masadmin123', 10);
+
+  await prisma.issuer.upsert({
+    where: { issuerId: 'ITS' },
+    update: {
+      organizationName: 'Institut Teknologi Sepuluh Nopember',
+      departmentName: '', // Dikosongkan agar dapat diisi manual di form
+      mspId: 'Org2MSP',
+      username: 'masadmin',
+      email: 'admin@its.ac.id',
+      passwordHash: passwordHashOrg2,
+      isActive: true,
+      status: 'ACTIVE'
+    },
+    create: {
+      issuerId: 'ITS',
+      organizationName: 'Institut Teknologi Sepuluh Nopember',
+      departmentName: '', // Dikosongkan agar dapat diisi manual di form
+      mspId: 'Org2MSP',
+      username: 'masadmin',
+      email: 'admin@its.ac.id',
+      passwordHash: passwordHashOrg2,
       isActive: true,
       status: 'ACTIVE'
     }
