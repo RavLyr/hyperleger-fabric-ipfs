@@ -27,3 +27,14 @@ export async function uploadToIPFS(
 export function getIPFSGatewayUrl(cid: string): string {
   return `${env.IPFS_GATEWAY_URL}/ipfs/${cid}`;
 }
+export async function cidExists(cid: string): Promise<boolean> {
+  try {
+    const response = await axios.head(getIPFSGatewayUrl(cid), {
+      validateStatus: (status) => status >= 200 && status < 300,
+    });
+
+    return response.status >= 200 && response.status < 300;
+  } catch {
+    return false;
+  }
+}

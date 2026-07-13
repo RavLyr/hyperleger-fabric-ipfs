@@ -13,9 +13,8 @@ import {
   getAllCertificatesService,
   revokeCertificateAndSync,
   uploadCertificate,
-  verifyCertificateService,
+  verifyCertificateByNumber,
 } from './certificate.service';
-import { getIPFSGatewayUrl } from '../../infrastructure/ipfs/ipfs.service';
 import { AppError } from '../../errors/AppError';
 
 function removeDocumentHash<T extends object>(certificate: T): Omit<T, 'documentHash'> {
@@ -168,46 +167,9 @@ export async function verifyCertificateController(
   res: Response
 ): Promise<void> {
   const nomorIjazah = typeof req.params.nomorIjazah === 'string' ? req.params.nomorIjazah : '';
-  const certificate = await verifyCertificateService(nomorIjazah);
+  const result = await verifyCertificateByNumber(nomorIjazah);
 
-  if (!certificate) {
-    res.json({
-      success: true,
-      valid: false,
-      message: 'Certificate not found in database',
-      data: null,
-    });
-    return;
-  }
-
-  try {
-    // 3. Verify on Ledger using certificateId and ipfsCid retrieved from DB
-    const ledgerResult = await certificateService.verifyCertificate({
-      certificateId: certificate.certificateId,
-      ipfsCid: certificate.ipfsCid, // Using stored ipfsCid to verify
-    }) as any;
-
-    const valid = ledgerResult && ledgerResult.valid === true;
-    const cleanDbData = removeDocumentHash(certificate);
-
-    // 4. Respond with ledger status, DB metadata, and IPFS document URL if valid
-    res.json({
-      success: true,
-      valid,
-      message: ledgerResult ? ledgerResult.message : 'Ledger verification failed',
-      ledgerData: ledgerResult,
-      dbData: cleanDbData,
-      documentUrl: valid ? getIPFSGatewayUrl(certificate.ipfsCid) : null,
-    });
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'Verification failed';
-    res.status(502).json({
-      success: false,
-      valid: false,
-      message: `Ledger verification error: ${errorMessage}`,
-      data: null,
-    });
-  }
+  res.json(result);
 }
 
 export async function getAllCertificatesController(
