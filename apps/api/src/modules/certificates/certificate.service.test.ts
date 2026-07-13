@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { AppError } from '../../errors/AppError';
+import { errorMiddleware } from '../../middleware/error.middleware';
 import { createRequireAuth, createRequireIssuerAdmin } from '../../middleware/auth.middleware';
 import { sha256Hex } from '../../utils/hash';
 import { parseIssueCertificateBody, parseRevokeCertificateBody } from './certificate.dto';
-import { createCertificateService, createUploadCertificateService, type FabricGateway } from './certificate.service';
+import { createCertificateService, createUploadCertificateService, createVerifyCertificateByNumberService, type FabricGateway } from './certificate.service';
 import type { AuthenticatedIssuer } from './certificate.repository';
 
 type Call = {
@@ -396,6 +397,122 @@ describe('certificate lifecycle chaincode mapping', () => {
 
 });
 
+
+function certificateFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    certificateId: 'CERT-001',
+    certificateNumber: 'NO-001',
+    issuerId: 'UNDIP',
+    certificateType: 'DIPLOMA',
+    degreeTitle: 'Sarjana Teknik',
+    studentId: 'NIM-001',
+    studentName: 'Budi',
+    organizationName: 'Universitas Diponegoro',
+    faculty: 'Fakultas Teknik',
+    studyProgram: 'Teknik Informatika',
+    educationLevel: 'S1',
+    graduationDate: null,
+    ipfsCid: 'bafy-cid',
+    file_name: 'ijazah.pdf',
+    mime_type: 'application/pdf',
+    file_size: 123,
+    ledger_tx_id: 'tx-1',
+    status: 'VALID',
+    issuedAt: '2026-07-13T00:00:00.000Z',
+    created_at: '2026-07-13T00:00:00.000Z',
+    updated_at: '2026-07-13T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+describe('public certificate verification', () => {
+  it('recovers a ledger-only certificate into the database before verifying it', async () => {
+    const recovered: Record<string, unknown>[] = [];
+    const service = createVerifyCertificateByNumberService({
+      findCertificateByCertificateNumber: async () => null,
+      insertRecoveredCertificate: async (data) => {
+        recovered.push(data as unknown as Record<string, unknown>);
+        return certificateFixture({
+          certificateId: data.certificateId,
+          certificateNumber: data.certificateNumber,
+          issuerId: data.issuerId,
+          ipfsCid: data.ipfsCid,
+          degreeTitle: data.degreeTitle,
+        });
+      },
+      cidExists: async () => true,
+      service: createCertificateService(createMockGateway({
+        GetAllCertificates: JSON.stringify([{
+          certificateId: 'CERT-LEDGER',
+          certificateNumber: 'NO-LEDGER',
+          issuerId: 'UNDIP',
+          certificateType: 'DIPLOMA',
+          title: 'Sarjana Ledger',
+          ipfsCid: 'bafy-ledger',
+          status: 'ACTIVE',
+          issuedAt: '2026-07-13',
+        }]),
+        VerifyCertificate: { valid: true, message: 'certificate is valid', status: 'ACTIVE' },
+      }).gateway),
+    });
+
+    const result = await service('NO-LEDGER');
+
+    assert.equal(result.valid, true);
+    assert.equal(result.integrityStatus, 'LEDGER_RECOVERED');
+    assert.equal(result.dbData?.certificateNumber, 'NO-LEDGER');
+    assert.equal(recovered[0]?.['certificateId'], 'CERT-LEDGER');
+  });
+
+  it('flags database-only certificates as possible manipulation', async () => {
+    const service = createVerifyCertificateByNumberService({
+      findCertificateByCertificateNumber: async () => certificateFixture(),
+      insertRecoveredCertificate: async () => certificateFixture(),
+      cidExists: async () => true,
+      service: createCertificateService(createMockGateway({
+        VerifyCertificate: { valid: false, message: 'certificate not found' },
+      }).gateway),
+    });
+
+    const result = await service('NO-001');
+
+    assert.equal(result.valid, false);
+    assert.equal(result.integrityStatus, 'DB_LEDGER_MISMATCH');
+    assert.match(result.message, /manipulation|illegal/i);
+  });
+
+  it('keeps text verification valid but reports missing IPFS files', async () => {
+    const service = createVerifyCertificateByNumberService({
+      findCertificateByCertificateNumber: async () => certificateFixture(),
+      insertRecoveredCertificate: async () => certificateFixture(),
+      cidExists: async () => false,
+      service: createCertificateService(createMockGateway({
+        VerifyCertificate: { valid: true, message: 'certificate is valid', status: 'ACTIVE' },
+      }).gateway),
+    });
+
+    const result = await service('NO-001');
+
+    assert.equal(result.valid, true);
+    assert.equal(result.documentStatus, 'FILE_NOT_FOUND');
+    assert.equal(result.documentUrl, null);
+  });
+});
+
+describe('error middleware', () => {
+  it('maps upload validation errors to client status codes', () => {
+    const statuses: number[] = [];
+    const response = {
+      status(code: number) { statuses.push(code); return this; },
+      json() { return this; },
+    };
+
+    errorMiddleware(new Error('Only PDF files are allowed'), {} as never, response as never, (() => undefined) as never);
+
+    assert.deepEqual(statuses, [415]);
+  });
+});
 
 describe('auth middleware', () => {
   it('rejects invalid JWT', async () => {

@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto';
 
 import { AppError } from '../../errors/AppError';
 import type { FabricResult } from '../../infrastructure/fabric/fabric-result';
-import { uploadToIPFS } from '../../infrastructure/ipfs/ipfs.service';
+import { cidExists, getIPFSGatewayUrl, uploadToIPFS } from '../../infrastructure/ipfs/ipfs.service';
 import { fabricGatewayForMsp } from '../fabric/fabric.service';
 import { sha256Hex } from '../../utils/hash';
 import { evaluateTransaction, submitTransaction, submitTransactionWithTxId } from '../fabric/fabric.service';
 import type {
   Certificate,
   CertificateTextInput,
+  CreateCertificateInput,
   IssueCertificateInput,
   RegisterIssuerInput,
   RevokeCertificateInput,
@@ -18,6 +19,7 @@ import {
   findAllCertificates,
   findCertificateByCertificateNumber,
   insertCertificate,
+  insertRecoveredCertificate,
   markCertificateRevoked,
   type AuthenticatedIssuer,
 } from './certificate.repository';
@@ -345,6 +347,184 @@ export async function verifyCertificateService(
   }
 
   return findCertificateByCertificateNumber(cleanCertificateNumber);
+}
+
+export type PublicVerificationResult = {
+  readonly success: true;
+  readonly valid: boolean;
+  readonly message: string;
+  readonly ledgerData?: unknown;
+  readonly dbData?: Certificate | null;
+  readonly data?: null;
+  readonly documentUrl?: string | null;
+  readonly documentStatus?: 'AVAILABLE' | 'FILE_NOT_FOUND' | 'NOT_CHECKED';
+  readonly documentError?: string;
+  readonly integrityStatus?: 'OK' | 'DB_LEDGER_MISMATCH' | 'LEDGER_RECOVERED';
+};
+
+type LedgerCertificate = {
+  readonly certificateId?: string;
+  readonly certificateNumber?: string;
+  readonly issuerId?: string;
+  readonly certificateType?: string;
+  readonly title?: string;
+  readonly ipfsCid?: string;
+  readonly status?: string;
+  readonly issuedAt?: string;
+};
+
+const ledgerLookupCache = new Map<string, { readonly expiresAt: number; readonly promise: Promise<LedgerCertificate | null> }>();
+
+type VerifyByNumberDependencies = {
+  readonly findCertificateByCertificateNumber: typeof findCertificateByCertificateNumber;
+  readonly insertRecoveredCertificate: typeof insertRecoveredCertificate;
+  readonly service: ReturnType<typeof createCertificateService>;
+  readonly cidExists: (cid: string) => Promise<boolean>;
+};
+
+const verifyByNumberDependencies: VerifyByNumberDependencies = {
+  findCertificateByCertificateNumber,
+  insertRecoveredCertificate,
+  service: certificateService,
+  cidExists,
+};
+
+export function createVerifyCertificateByNumberService(dependencies: VerifyByNumberDependencies = verifyByNumberDependencies) {
+  return async function verifyCertificateByNumber(certificateNumber: string): Promise<PublicVerificationResult> {
+    const cleanCertificateNumber = certificateNumber.trim();
+
+    if (!cleanCertificateNumber) {
+      throw new Error('certificateNumber is required');
+    }
+
+    let certificate = await dependencies.findCertificateByCertificateNumber(cleanCertificateNumber);
+    let integrityStatus: PublicVerificationResult['integrityStatus'] = 'OK';
+
+    if (!certificate) {
+      const ledgerCertificate = await findLedgerCertificateByNumber(cleanCertificateNumber, dependencies.service);
+
+      if (!ledgerCertificate) {
+        return { success: true, valid: false, message: 'Certificate not found in database or ledger', data: null };
+      }
+
+      certificate = await dependencies.insertRecoveredCertificate(recoveredCertificateInput(ledgerCertificate));
+      integrityStatus = 'LEDGER_RECOVERED';
+    }
+
+    if (!certificate) {
+      throw new AppError('Certificate recovery failed', 500);
+    }
+
+    const ledgerResult = await dependencies.service.verifyCertificate({
+      certificateId: certificate.certificateId,
+      ipfsCid: certificate.ipfsCid,
+    }) as Record<string, unknown> | null;
+
+    if (ledgerResult?.valid === false && /not found/i.test(String(ledgerResult.message ?? ''))) {
+      return {
+        success: true,
+        valid: false,
+        message: 'Certificate exists in PostgreSQL but not in ledger; possible manipulation/illegal data',
+        ledgerData: ledgerResult,
+        dbData: certificate,
+        documentUrl: null,
+        documentStatus: 'NOT_CHECKED',
+        integrityStatus: 'DB_LEDGER_MISMATCH',
+      };
+    }
+
+    const valid = ledgerResult?.valid === true;
+
+    if (!valid) {
+      return {
+        success: true,
+        valid: false,
+        message: String(ledgerResult?.message ?? 'Ledger verification failed'),
+        ledgerData: ledgerResult,
+        dbData: certificate,
+        documentUrl: null,
+        documentStatus: 'NOT_CHECKED',
+        integrityStatus,
+      };
+    }
+
+    const documentExists = await dependencies.cidExists(certificate.ipfsCid);
+
+    return {
+      success: true,
+      valid: true,
+      message: String(ledgerResult?.message ?? 'certificate is valid'),
+      ledgerData: ledgerResult,
+      dbData: certificate,
+      documentUrl: documentExists ? getIPFSGatewayUrl(certificate.ipfsCid) : null,
+      documentStatus: documentExists ? 'AVAILABLE' : 'FILE_NOT_FOUND',
+      documentError: documentExists ? undefined : 'File Not Found in IPFS',
+      integrityStatus,
+    };
+  };
+}
+
+export const verifyCertificateByNumber = createVerifyCertificateByNumberService();
+
+async function findLedgerCertificateByNumber(certificateNumber: string, service: ReturnType<typeof createCertificateService>): Promise<LedgerCertificate | null> {
+  const cached = ledgerLookupCache.get(certificateNumber);
+
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.promise;
+  }
+
+  // ponytail: O(n) ledger scan with short promise cache; add chaincode GetCertificateByNumber if certificate volume grows.
+  const promise = service.getAllCertificates()
+    .then(parseLedgerCertificates)
+    .then((certificates) => certificates.find((certificate) => certificate.certificateNumber === certificateNumber) ?? null)
+    .catch((error) => {
+      ledgerLookupCache.delete(certificateNumber);
+      throw error;
+    });
+
+  ledgerLookupCache.set(certificateNumber, { expiresAt: Date.now() + 2_000, promise });
+
+  return promise;
+}
+
+function parseLedgerCertificates(value: unknown): LedgerCertificate[] {
+  const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+
+  return Array.isArray(parsed) ? parsed as LedgerCertificate[] : [];
+}
+
+function recoveredCertificateInput(certificate: LedgerCertificate): CreateCertificateInput {
+  return {
+    certificateId: requiredLedgerField(certificate.certificateId, 'certificateId'),
+    certificateNumber: requiredLedgerField(certificate.certificateNumber, 'certificateNumber'),
+    issuerId: requiredLedgerField(certificate.issuerId, 'issuerId'),
+    organizationName: requiredLedgerField(certificate.issuerId, 'issuerId'),
+    departmentName: 'Recovered from ledger',
+    mspId: 'UNKNOWN_MSP',
+    certificateType: requiredLedgerField(certificate.certificateType, 'certificateType'),
+    degreeTitle: requiredLedgerField(certificate.title, 'title'),
+    studentId: 'Recovered from ledger',
+    studentName: 'Recovered from ledger',
+    faculty: 'Recovered from ledger',
+    studyProgram: 'Recovered from ledger',
+    educationLevel: 'Recovered from ledger',
+    graduationDate: '',
+    ipfsCid: requiredLedgerField(certificate.ipfsCid, 'ipfsCid'),
+    file_name: 'Recovered from ledger',
+    mime_type: 'application/pdf',
+    file_size: 0,
+    ledger_tx_id: 'recovered-from-ledger',
+    status: certificate.status === 'REVOKED' ? 'REVOKED' : 'VALID',
+    issuedAt: requiredLedgerField(certificate.issuedAt, 'issuedAt').slice(0, 10),
+  };
+}
+
+function requiredLedgerField(value: string | undefined, field: string): string {
+  if (!value) {
+    throw new AppError('Ledger certificate is missing ' + field, 502);
+  }
+
+  return value;
 }
 
 export async function getAllCertificatesService(issuerId?: string): Promise<Certificate[]> {
