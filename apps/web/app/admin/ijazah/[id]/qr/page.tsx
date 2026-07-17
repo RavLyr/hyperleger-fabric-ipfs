@@ -14,12 +14,10 @@ import {
 } from "@phosphor-icons/react/dist/ssr"
 import {
   getDatabaseCertificates,
-  getIssuerById,
   getLedgerCertificateDetail,
 } from "@/lib/backend-api/certificates"
 import type {
   DatabaseCertificate,
-  IssuerData,
   LedgerCertificateAsset,
 } from "@/lib/backend-api/types"
 
@@ -31,26 +29,6 @@ type PreviewDiplomaPageProps = {
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-function formatDate(date: Date | string | null | undefined) {
-  if (!date) {
-    return "-"
-  }
-
-  const parsedDate = date instanceof Date ? date : new Date(date)
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "-"
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(parsedDate)
-}
 
 function formatOnlyDate(date: Date | string | null | undefined) {
   if (!date) {
@@ -70,22 +48,6 @@ function formatOnlyDate(date: Date | string | null | undefined) {
   }).format(parsedDate)
 }
 
-function formatFileSize(size: number | null | undefined) {
-  if (!size) {
-    return "-"
-  }
-
-  if (size < 1024) {
-    return `${size} B`
-  }
-
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(2)} KB`
-  }
-
-  return `${(size / (1024 * 1024)).toFixed(2)} MB`
-}
-
 function getCertificateTitle(
   dbCertificate: DatabaseCertificate | null,
   ledgerCertificate: LedgerCertificateAsset
@@ -95,18 +57,6 @@ function getCertificateTitle(
     dbCertificate?.title ??
     ledgerCertificate.degreeTitle ??
     ledgerCertificate.title ??
-    "-"
-  )
-}
-
-function getOrganizationName(
-  issuer: IssuerData | null,
-  dbCertificate: DatabaseCertificate | null
-) {
-  return (
-    issuer?.organizationName ??
-    dbCertificate?.organizationName ??
-    dbCertificate?.universityName ??
     "-"
   )
 }
@@ -180,10 +130,6 @@ async function getDatabaseCertificateByCertificateId(
   )
 }
 
-async function getSafeIssuer(issuerId: string): Promise<IssuerData | null> {
-  return getIssuerById(issuerId).catch(() => null)
-}
-
 export default async function PreviewDiplomaPage({
   params,
 }: PreviewDiplomaPageProps) {
@@ -222,14 +168,12 @@ export default async function PreviewDiplomaPage({
     notFound()
   }
 
-  const [dbCertificate, issuer] = await Promise.all([
+  const dbCertificate =
     scopedDbCertificate ??
-      getDatabaseCertificateByCertificateId(
-        certificate.certificateId,
-        certificate.issuerId
-      ),
-    getSafeIssuer(certificate.issuerId),
-  ])
+    (await getDatabaseCertificateByCertificateId(
+      certificate.certificateId,
+      certificate.issuerId
+    ))
 
   const certificateNumber =
     dbCertificate?.certificateNumber ?? certificate.certificateNumber
@@ -241,19 +185,11 @@ export default async function PreviewDiplomaPage({
   const educationLevel = dbCertificate?.educationLevel ?? "-"
   const graduationDate = dbCertificate?.graduationDate ?? null
 
-  const certificateType =
-    dbCertificate?.certificateType ?? certificate.certificateType ?? "IJAZAH"
-
   const certificateTitle = getCertificateTitle(dbCertificate, certificate)
 
   const status = getCertificateStatus(dbCertificate, certificate)
-
-  const issuedAt = dbCertificate?.issuedAt ?? certificate.issuedAt
-  const expiredAt = dbCertificate?.expiredAt ?? certificate.expiredAt
   const ipfsCid = dbCertificate?.ipfsCid ?? certificate.ipfsCid
   const documentUrl = getIpfsDocumentUrl(ipfsCid)
-
-  const organizationName = getOrganizationName(issuer, dbCertificate)
 
   const appUrl = (
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
@@ -350,6 +286,8 @@ export default async function PreviewDiplomaPage({
                       value={educationLevel}
                     />
 
+                    <MetadataItem label="Gelar" value={certificateTitle} />
+
                     <MetadataItem
                       label="Tanggal Lulus"
                       value={formatOnlyDate(graduationDate)}
@@ -365,112 +303,6 @@ export default async function PreviewDiplomaPage({
                     </span>
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
-                <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-500">
-                  Metadata Sertifikat Digital
-                </h2>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <MetadataItem
-                    label="Certificate ID"
-                    value={certificate.certificateId}
-                    mono
-                  />
-
-                  <MetadataItem
-                    label="Certificate Number"
-                    value={certificateNumber}
-                    mono
-                  />
-
-                  <MetadataItem
-                    label="Certificate Type"
-                    value={certificateType}
-                  />
-
-                  <MetadataItem label="Degree Title" value={certificateTitle} />
-
-                  <MetadataItem label="Status" value={status} />
-
-                  <MetadataItem
-                    label="Issuer ID"
-                    value={certificate.issuerId}
-                    mono
-                  />
-
-                  <MetadataItem label="Issuer" value={organizationName} />
-
-                  <MetadataItem label="Faculty" value={faculty} />
-
-                  <MetadataItem
-                    label="Department"
-                    value={issuer?.departmentName ?? "-"}
-                  />
-
-                  <MetadataItem
-                    label="MSP ID"
-                    value={issuer?.mspId ?? "-"}
-                    mono
-                  />
-
-                  <MetadataItem
-                    label="Issued At"
-                    value={formatOnlyDate(issuedAt)}
-                  />
-
-                  <MetadataItem
-                    label="Expired At"
-                    value={formatOnlyDate(expiredAt)}
-                  />
-
-                  <MetadataItem
-                    label="Graduation Date"
-                    value={formatOnlyDate(graduationDate)}
-                  />
-
-                  <MetadataItem label="IPFS CID" value={ipfsCid ?? "-"} mono />
-
-                  {certificate.studentIdHash ? (
-                    <MetadataItem
-                      label="Student ID Hash"
-                      value={certificate.studentIdHash}
-                      mono
-                    />
-                  ) : null}
-
-                  <MetadataItem
-                    label="File"
-                    value={dbCertificate?.file_name ?? "-"}
-                  />
-
-                  <MetadataItem
-                    label="File MIME Type"
-                    value={dbCertificate?.mime_type ?? "-"}
-                  />
-
-                  <MetadataItem
-                    label="File Size"
-                    value={formatFileSize(dbCertificate?.file_size)}
-                  />
-
-                  <MetadataItem
-                    label="Ledger TX ID"
-                    value={dbCertificate?.ledger_tx_id ?? "-"}
-                    mono
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-700">
-                  Verification URL
-                </p>
-
-                <p className="mt-2 break-all font-mono text-xs text-blue-900">
-                  {verificationUrl}
-                </p>
               </div>
             </div>
 
@@ -514,15 +346,6 @@ export default async function PreviewDiplomaPage({
                 </a>
               )}
             </div>
-
-            <p className="mt-8 text-xs font-semibold text-slate-500">
-              Generated on:{" "}
-              {formatDate(
-                dbCertificate?.created_at ?? certificate.createdAt
-              )}{" "}
-              • Certificate Number:{" "}
-              <span className="font-mono">{certificateNumber}</span>
-            </p>
           </div>
         </section>
       </main>

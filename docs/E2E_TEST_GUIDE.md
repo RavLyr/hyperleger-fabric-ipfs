@@ -366,3 +366,24 @@ Pastikan container IPFS sudah healthy:
 ```bash
 docker exec ipfs-hyperledger-backend-ipfs-1 ipfs id
 ```
+
+
+---
+
+## Automated QA Runner
+
+Untuk menghasilkan output terminal yang mudah di-screenshot:
+
+```bash
+pnpm qa:test
+```
+
+Runner ini menguji API/backend non-browser: upload, verify, revoke, audit trail, sinkronisasi Ledger/PostgreSQL, validasi upload, auth, IPFS missing file, dan stress 100/500/1000 concurrent request.
+
+Untuk smoke test cepat tanpa beban besar:
+
+```bash
+QA_STRESS_LEVELS=1 pnpm qa:test
+```
+
+Prerequisite: stack Docker backend/PostgreSQL/IPFS/Fabric sedang berjalan dan admin default bisa login.

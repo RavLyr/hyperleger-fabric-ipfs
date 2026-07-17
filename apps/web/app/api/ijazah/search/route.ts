@@ -31,39 +31,6 @@ function getBackendBaseUrl() {
   return baseUrl.replace(/\/$/, "")
 }
 
-function normalizeStatus(status?: string | null) {
-  return String(status ?? "").toUpperCase()
-}
-
-function getVerificationMessage(status?: string | null, fallbackMessage?: string) {
-  const normalizedStatus = normalizeStatus(status)
-
-  if (normalizedStatus === "REVOKED") {
-    return "Ijazah ditemukan, tetapi statusnya telah dicabut oleh penerbit."
-  }
-
-  if (normalizedStatus === "REISSUED") {
-    return "Ijazah ditemukan, tetapi sudah diterbitkan ulang oleh penerbit."
-  }
-
-  if (normalizedStatus === "EXPIRED") {
-    return "Ijazah ditemukan, tetapi masa berlakunya telah kedaluwarsa."
-  }
-
-  if (normalizedStatus === "VALID" || normalizedStatus === "ACTIVE") {
-    return fallbackMessage || "Ijazah berhasil diverifikasi."
-  }
-
-  return fallbackMessage || "Ijazah ditemukan."
-}
-
-function getFinalStatus(
-  ledgerStatus?: string | null,
-  dbStatus?: string | null
-) {
-  return ledgerStatus ?? dbStatus ?? "UNKNOWN"
-}
-
 function getDocumentUrl(documentUrl?: string | null) {
   const url = documentUrl?.trim()
 
@@ -126,7 +93,7 @@ export async function GET(request: NextRequest) {
         found: false,
         valid: false,
         data: null,
-        message: "Data ijazah tidak ditemukan.",
+        message: result.message ?? "Data ijazah tidak ditemukan.",
       })
     }
 
@@ -134,12 +101,10 @@ export async function GET(request: NextRequest) {
     const issuerId = dbData.issuerId
     const issuer = issuerId ? await getIssuerById(issuerId).catch(() => null) : null
 
-    const finalStatus = getFinalStatus(
-      result.ledgerData?.status,
-      dbData.status
-    )
-
-    const documentUrl = getDocumentUrl(result.documentUrl)
+    const documentUrl =
+      result.documentStatus === "FILE_NOT_FOUND"
+        ? null
+        : getDocumentUrl(result.documentUrl)
 
     const organizationName =
       issuer?.organizationName ??
@@ -151,9 +116,14 @@ export async function GET(request: NextRequest) {
       success: true,
       found: true,
       valid: result.valid,
-      message: getVerificationMessage(finalStatus, result.message),
+      message: result.message ?? "Ijazah ditemukan.",
+      documentUrl,
+      integrityStatus: result.integrityStatus,
+      documentStatus: result.documentStatus,
+      documentError: result.documentError,
       data: {
         id: dbData.id,
+        valid: result.valid,
 
         certificateId: dbData.certificateId,
         certificateNumber: dbData.certificateNumber,
@@ -183,11 +153,15 @@ export async function GET(request: NextRequest) {
         studentIdHash: dbData.studentIdHash ?? null,
         documentHash: dbData.documentHash ?? null,
         fileHash: dbData.documentHash ?? null,
-        status: finalStatus,
+        status: result.ledgerData?.status ?? dbData.status ?? null,
+        message: result.message ?? null,
         ipfsCid: dbData.ipfsCid ?? null,
         ledgerTxId: dbData.ledger_tx_id ?? null,
         ledger_tx_id: dbData.ledger_tx_id ?? null,
         documentUrl,
+        documentStatus: result.documentStatus ?? null,
+        documentError: result.documentError ?? null,
+        integrityStatus: result.integrityStatus ?? null,
         uploadedFileName: dbData.file_name ?? null,
         file_name: dbData.file_name ?? null,
         uploadedFileMimeType: dbData.mime_type ?? null,

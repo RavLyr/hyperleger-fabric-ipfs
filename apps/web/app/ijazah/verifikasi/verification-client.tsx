@@ -11,19 +11,19 @@ import {
   ShieldCheck,
   UserCircle,
   WarningCircle,
+  X,
 } from "@phosphor-icons/react"
+import {
+  Banner,
+  BannerAction,
+  BannerClose,
+  BannerIcon,
+  BannerTitle,
+} from "@/components/ui/banner"
 import Footer from "@/components/ui/footer"
 import PublicShell from "@/components/ui/public-shell"
 
 type VerificationMethod = "input" | "qr"
-
-type CertificateStatus =
-  | "VALID"
-  | "ACTIVE"
-  | "REVOKED"
-  | "REISSUED"
-  | "EXPIRED"
-  | "UNKNOWN"
 
 type Diploma = {
   id?: string | number | null
@@ -59,6 +59,11 @@ type Diploma = {
 
   ipfsCid?: string | null
   documentUrl?: string | null
+  documentStatus?: string | null
+  documentError?: string | null
+  integrityStatus?: string | null
+  message?: string | null
+  valid?: boolean | null
 
   ledgerTxId?: string | null
   ledger_tx_id?: string | null
@@ -70,7 +75,7 @@ type Diploma = {
   uploadedFileSize?: number | null
   file_size?: number | null
 
-  status?: CertificateStatus | string | null
+  status?: string | null
   issuedAt?: string | null
   expiredAt?: string | null
   createdAt?: string | null
@@ -99,7 +104,20 @@ type SearchApiResponse = {
   found?: boolean
   valid?: boolean
   message?: string
+  status?: string | null
+  integrityStatus?: string | null
+  documentStatus?: string | null
+  documentUrl?: string | null
+  documentError?: string | null
   data?: Diploma | Diploma[] | null
+}
+
+type IntegrityBannerVariant = "green" | "red" | "yellow" | "blue" | "neutral"
+
+type IntegrityBanner = {
+  title: string
+  description?: string
+  variant: IntegrityBannerVariant
 }
 
 function formatDisplayDate(value?: string | null) {
@@ -165,62 +183,6 @@ function extractQrValue(value: string) {
   return trimmedValue
 }
 
-function normalizeStatus(status?: string | null): CertificateStatus {
-  const upperStatus = String(status ?? "").toUpperCase()
-
-  if (upperStatus === "VALID") return "VALID"
-  if (upperStatus === "ACTIVE") return "ACTIVE"
-  if (upperStatus === "REVOKED") return "REVOKED"
-  if (upperStatus === "REISSUED") return "REISSUED"
-  if (upperStatus === "EXPIRED") return "EXPIRED"
-
-  return "UNKNOWN"
-}
-
-function getFinalStatus(diploma: Diploma) {
-  return diploma.ledgerData?.status ?? diploma.status ?? "UNKNOWN"
-}
-
-function getStatusLabel(status?: string | null) {
-  const normalizedStatus = normalizeStatus(status)
-
-  if (normalizedStatus === "VALID" || normalizedStatus === "ACTIVE") {
-    return "Terverifikasi"
-  }
-
-  if (normalizedStatus === "REVOKED") {
-    return "Dicabut"
-  }
-
-  if (normalizedStatus === "REISSUED") {
-    return "Diterbitkan Ulang"
-  }
-
-  if (normalizedStatus === "EXPIRED") {
-    return "Kedaluwarsa"
-  }
-
-  return "Status Tidak Diketahui"
-}
-
-function getStatusClassName(status?: string | null) {
-  const normalizedStatus = normalizeStatus(status)
-
-  if (normalizedStatus === "VALID" || normalizedStatus === "ACTIVE") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-200"
-  }
-
-  if (normalizedStatus === "REVOKED") {
-    return "bg-red-50 text-red-700 border-red-200"
-  }
-
-  if (normalizedStatus === "REISSUED" || normalizedStatus === "EXPIRED") {
-    return "bg-yellow-50 text-yellow-700 border-yellow-200"
-  }
-
-  return "bg-slate-50 text-slate-700 border-slate-200"
-}
-
 function getFirstDiploma(data: Diploma | Diploma[] | null | undefined) {
   if (Array.isArray(data)) {
     return data[0] ?? null
@@ -258,6 +220,93 @@ function getIpfsGatewayUrl() {
   const gatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? ""
 
   return gatewayUrl.replace(/\/$/, "")
+}
+
+function normalizeStatus(value?: string | null) {
+  return value?.trim().toUpperCase() ?? ""
+}
+
+function formatApiMessage(message?: string | null) {
+  const normalizedMessage = message?.trim().toLowerCase() ?? ""
+
+  if (!normalizedMessage) {
+    return ""
+  }
+
+  if (normalizedMessage.includes("certificate is valid")) {
+    return "Data ijazah valid dan telah diverifikasi."
+  }
+
+  if (normalizedMessage.includes("certificate has been revoked")) {
+    return "Ijazah telah dicabut."
+  }
+
+  if (
+    normalizedMessage.includes("certificate not found") ||
+    normalizedMessage.includes("not found in database or ledger")
+  ) {
+    return "Data ijazah tidak ditemukan."
+  }
+
+  if (
+    normalizedMessage.includes("possible manipulation") ||
+    normalizedMessage.includes("illegal data")
+  ) {
+    return "Terdapat indikasi manipulasi data."
+  }
+
+  if (normalizedMessage.includes("document file not found")) {
+    return "File ijazah tidak ditemukan."
+  }
+
+  return message ?? ""
+}
+
+function isRevoked(diploma: Diploma) {
+  return (
+    diploma.ledgerData?.revoked === true ||
+    normalizeStatus(diploma.ledgerData?.status) === "REVOKED" ||
+    normalizeStatus(diploma.status) === "REVOKED"
+  )
+}
+
+function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
+  if (!diploma) {
+    return null
+  }
+
+  const integrityStatus = normalizeStatus(diploma.integrityStatus)
+  const documentStatus = normalizeStatus(diploma.documentStatus)
+  if (integrityStatus === "DB_LEDGER_MISMATCH") {
+    return {
+      title: "Indikasi Manipulasi Data",
+      variant: "red",
+    }
+  }
+
+  if (integrityStatus === "LEDGER_RECOVERED") {
+    return {
+      title: "Data Disinkronkan Ulang",
+      variant: "blue",
+    }
+  }
+
+  if (documentStatus === "FILE_NOT_FOUND") {
+    return {
+      title: "File Ijazah Tidak Ditemukan",
+      variant: "yellow",
+    }
+  }
+
+  return null
+}
+
+function canViewDocument(diploma: Diploma) {
+  return (
+    normalizeStatus(diploma.documentStatus) !== "FILE_NOT_FOUND" &&
+    normalizeStatus(diploma.integrityStatus) !== "DB_LEDGER_MISMATCH" &&
+    !isRevoked(diploma)
+  )
 }
 
 function normalizeDocumentUrl(
@@ -304,7 +353,107 @@ function normalizeDocumentUrl(
 }
 
 function getIpfsDocumentUrl(diploma: Diploma) {
+  if (!canViewDocument(diploma)) {
+    return null
+  }
+
   return normalizeDocumentUrl(diploma.documentUrl, diploma.ipfsCid)
+}
+
+function getSummaryStatus(diploma: Diploma) {
+  if (normalizeStatus(diploma.integrityStatus) === "DB_LEDGER_MISMATCH") {
+    return "ACTIVE"
+  }
+
+  return diploma.ledgerData?.status || diploma.status || "Belum tersedia"
+}
+
+function getVerificationWatermark(diploma: Diploma) {
+  if (normalizeStatus(diploma.integrityStatus) === "LEDGER_RECOVERED") {
+    return null
+  }
+
+  if (isRevoked(diploma)) {
+    return {
+      label: "Ijazah Telah Dicabut",
+      className: "border-red-200 bg-red-50 text-red-700",
+    }
+  }
+
+  const status = normalizeStatus(diploma.ledgerData?.status ?? diploma.status)
+
+  if (diploma.valid === true || diploma.ledgerData?.valid === true || status === "VALID" || status === "ACTIVE") {
+    return {
+      label: "Terverifikasi",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    }
+  }
+
+  return null
+}
+
+function VerificationIntegrityBanner({
+  banner,
+  documentUrl,
+  onClose,
+}: {
+  banner: IntegrityBanner
+  documentUrl?: string | null
+  onClose: () => void
+}) {
+  const className = {
+    green: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    red: "border-red-200 bg-red-50 text-red-800",
+    yellow: "border-amber-200 bg-amber-50 text-amber-900",
+    blue: "border-blue-200 bg-blue-50 text-blue-800",
+    neutral: "border-slate-200 bg-slate-50 text-slate-800",
+  }[banner.variant]
+
+  const iconClassName = {
+    green: "text-emerald-600",
+    red: "text-red-600",
+    yellow: "text-amber-600",
+    blue: "text-blue-600",
+    neutral: "text-slate-500",
+  }[banner.variant]
+
+  const Icon =
+    banner.variant === "green" || banner.variant === "blue"
+      ? ShieldCheck
+      : WarningCircle
+
+  return (
+    <Banner className={className}>
+      <BannerIcon className={iconClassName}>
+        <Icon weight="fill" className="h-5 w-5" />
+      </BannerIcon>
+
+      <div className="min-w-0 flex-1">
+        <BannerTitle>{banner.title}</BannerTitle>
+        {banner.description && (
+          <p className="mt-1 text-sm opacity-90">{banner.description}</p>
+        )}
+
+        {documentUrl && (
+          <BannerAction>
+            <a
+              href={documentUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+            >
+              <ArrowSquareOut className="h-4 w-4" />
+              Lihat Ijazah
+            </a>
+          </BannerAction>
+        )}
+      </div>
+
+      <BannerClose onClick={onClose} aria-label="Tutup banner">
+        <X className="h-4 w-4" />
+      </BannerClose>
+    </Banner>
+  )
 }
 
 function DetailItem({
@@ -389,6 +538,7 @@ export default function VerificationClient() {
   const [isSearching, setIsSearching] = useState(false)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [isBannerVisible, setIsBannerVisible] = useState(false)
 
   const searchParams = useSearchParams()
   const numberFromUrl =
@@ -402,8 +552,12 @@ export default function VerificationClient() {
   const scannerRef = useRef<QrScanner | null>(null)
   const resultSectionRef = useRef<HTMLElement | null>(null)
 
-  const finalStatus = diploma ? getFinalStatus(diploma) : "UNKNOWN"
+  const integrityBanner = hasSearched && !isSearching && diploma
+    ? getIntegrityBanner(diploma)
+    : null
   const ipfsDocumentUrl = diploma ? getIpfsDocumentUrl(diploma) : null
+
+  const verificationWatermark = diploma ? getVerificationWatermark(diploma) : null
 
   useEffect(() => {
     if (!hasSearched || isSearching) return
@@ -440,6 +594,7 @@ export default function VerificationClient() {
 
     if (!finalQuery) {
       setHasSearched(false)
+      setIsBannerVisible(false)
       setMessage("Masukkan nomor ijazah terlebih dahulu.")
       setDiploma(null)
       return
@@ -449,6 +604,7 @@ export default function VerificationClient() {
     setIsSearching(true)
     setMessage("")
     setDiploma(null)
+    setIsBannerVisible(false)
 
     try {
       const response = await fetch(
@@ -458,24 +614,41 @@ export default function VerificationClient() {
       const result = (await response.json()) as SearchApiResponse
 
       if (!response.ok || result.success === false) {
-        setMessage(result.message || "Terjadi kesalahan saat mencari data.")
+        setMessage(
+          formatApiMessage(result.message) ||
+            "Terjadi kesalahan saat mencari data."
+        )
         setDiploma(null)
+        setIsBannerVisible(false)
         return
       }
 
       const foundDiploma = getFirstDiploma(result.data)
 
       if (!foundDiploma || result.found === false) {
-        setMessage(result.message || "Data ijazah tidak ditemukan.")
+        setMessage(
+          formatApiMessage(result.message) || "Data ijazah tidak ditemukan."
+        )
         setDiploma(null)
+        setIsBannerVisible(false)
         return
       }
 
-      setDiploma(foundDiploma)
-      setMessage(result.message ?? "")
+      setDiploma({
+        ...foundDiploma,
+        message: foundDiploma.message ?? result.message ?? null,
+        documentStatus: foundDiploma.documentStatus ?? result.documentStatus ?? null,
+        documentUrl: foundDiploma.documentUrl ?? result.documentUrl ?? null,
+        integrityStatus: foundDiploma.integrityStatus ?? result.integrityStatus ?? null,
+        valid: foundDiploma.valid ?? result.valid ?? null,
+        status: foundDiploma.status ?? result.status ?? null,
+      })
+      setMessage(formatApiMessage(result.message))
+      setIsBannerVisible(true)
     } catch {
       setMessage("Gagal menghubungi server.")
       setDiploma(null)
+      setIsBannerVisible(false)
     } finally {
       setIsSearching(false)
     }
@@ -673,11 +846,6 @@ export default function VerificationClient() {
                 {isSearching ? "Memverifikasi..." : "Verifikasi Dokumen"}
               </button>
 
-              {message && (
-                <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  {message}
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -692,17 +860,25 @@ export default function VerificationClient() {
                 Hasil Verifikasi
               </h2>
 
-              {!isSearching && diploma && (
+              {!isSearching && verificationWatermark && (
                 <div
-                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold ${getStatusClassName(
-                    finalStatus
-                  )}`}
+                  className={"inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold " + verificationWatermark.className}
                 >
                   <ShieldCheck weight="fill" className="h-4 w-4" />
-                  {getStatusLabel(finalStatus)}
+                  {verificationWatermark.label}
                 </div>
               )}
             </div>
+
+            {!isSearching && integrityBanner && isBannerVisible && (
+              <div className="mb-6">
+                <VerificationIntegrityBanner
+                  banner={integrityBanner}
+                  documentUrl={ipfsDocumentUrl}
+                  onClose={() => setIsBannerVisible(false)}
+                />
+              </div>
+            )}
 
             {isSearching && <VerificationResultSkeleton />}
 
@@ -723,7 +899,8 @@ export default function VerificationClient() {
             )}
 
             {!isSearching && diploma && (
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-1">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
                     <div className="mb-6 flex flex-col items-center gap-4 text-center">
@@ -745,15 +922,6 @@ export default function VerificationClient() {
                     <div className="space-y-4 border-t border-slate-200 pt-4">
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Status
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {getStatusLabel(finalStatus)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                           Jenis Ijazah
                         </span>
                         <span className="text-right text-sm font-medium text-slate-900">
@@ -768,6 +936,15 @@ export default function VerificationClient() {
                         <span className="text-right text-sm font-medium text-slate-900">
                           {formatDisplayDate(diploma.issuedAt) ||
                             "Belum tersedia"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Status
+                        </span>
+                        <span className="text-right text-sm font-medium text-slate-900">
+                          {getSummaryStatus(diploma)}
                         </span>
                       </div>
                     </div>
@@ -844,11 +1021,6 @@ export default function VerificationClient() {
                         label="Tanggal Terbit"
                         value={formatDisplayDate(diploma.issuedAt)}
                       />
-
-                      <DetailItem
-                        label="Status"
-                        value={diploma.ledgerData?.status ?? finalStatus}
-                      />
                     </div>
                   </div>
 
@@ -865,6 +1037,7 @@ export default function VerificationClient() {
                   )}
                 </div>
               </div>
+            </div>
             )}
           </section>
         )}

@@ -13,6 +13,13 @@ type BackendErrorResponse = {
   }
 }
 
+export class BackendApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+    this.name = "BackendApiError"
+  }
+}
+
 function getBackendBaseUrl() {
   const baseUrl = process.env.BACKEND_BASE_URL
 
@@ -55,10 +62,11 @@ export async function backendFetch<T = BackendErrorResponse>(
   const errorResult = result as BackendErrorResponse | null
 
   if (!response.ok || errorResult?.success === false) {
-    throw new Error(
+    throw new BackendApiError(
       errorResult?.error?.message ||
         errorResult?.message ||
-        "Request ke backend gagal."
+        "Request ke backend gagal.",
+      response.status
     )
   }
 

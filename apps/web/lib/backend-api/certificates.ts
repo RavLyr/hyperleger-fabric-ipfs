@@ -1,4 +1,4 @@
-import { backendFetch } from "./client"
+import { BackendApiError, backendFetch } from "./client"
 import type {
   CertificateHistoryItem,
   DatabaseCertificate,
@@ -135,9 +135,39 @@ export async function uploadCertificate(input: UploadCertificateInput) {
   const response = await backendFetch("/api/upload", {
     method: "POST",
     body: formData,
+  }).catch((error) => {
+    if (!(error instanceof BackendApiError)) {
+      throw error
+    }
+
+    if (error.status === 413) {
+      throw new Error("Ukuran file ijazah maksimal 10MB.")
+    }
+
+    if (error.status === 415) {
+      throw new Error("File ijazah harus berformat PDF.")
+    }
+
+    if (error.status === 500) {
+      throw new Error("Gagal mengunggah ijazah. Silakan coba lagi.")
+    }
+
+    throw new Error(formatUploadErrorMessage(error.message))
   })
 
   return response.data as DatabaseCertificate
+}
+
+function formatUploadErrorMessage(message: string) {
+  if (message === "Only PDF files are allowed") {
+    return "File ijazah harus berformat PDF."
+  }
+
+  if (message === "File too large") {
+    return "Ukuran file ijazah maksimal 10MB."
+  }
+
+  return message
 }
 
 export async function verifyCertificateByNumber(nomorIjazah: string) {

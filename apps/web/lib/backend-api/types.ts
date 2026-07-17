@@ -99,6 +99,9 @@ export type VerifyCertificateResponse = {
   ledgerData?: LedgerVerifyResult | null
   dbData?: DatabaseCertificate | null
   documentUrl?: string | null
+  documentStatus?: string | null
+  documentError?: string | null
+  integrityStatus?: string | null
 }
 
 export type UploadCertificateInput = {

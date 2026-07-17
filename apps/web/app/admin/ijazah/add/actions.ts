@@ -144,29 +144,39 @@ export async function createDiploma(formData: FormData) {
     redirect("/admin/ijazah?duplicate=1")
   }
 
-  const uploadedCertificate = await uploadCertificate({
-    file: certificateFile,
+  let uploadedCertificate: Awaited<ReturnType<typeof uploadCertificate>>
 
-    certificateNumber,
+  try {
+    uploadedCertificate = await uploadCertificate({
+      file: certificateFile,
 
-    issuerId: session.issuerId,
-    organizationName: session.organizationName,
-    departmentName: session.departmentName,
-    mspId: session.mspId,
+      certificateNumber,
 
-    certificateType,
-    degreeTitle,
+      issuerId: session.issuerId,
+      organizationName: session.organizationName,
+      departmentName: session.departmentName,
+      mspId: session.mspId,
 
-    studentId,
-    studentName,
-    faculty,
-    studyProgram,
-    educationLevel,
+      certificateType,
+      degreeTitle,
 
-    issuedAt: issuedAtRaw,
-    graduationDate: graduationDateRaw || undefined,
-    expiredAt: expiredAtRaw || undefined,
-  })
+      studentId,
+      studentName,
+      faculty,
+      studyProgram,
+      educationLevel,
+
+      issuedAt: issuedAtRaw,
+      graduationDate: graduationDateRaw || undefined,
+      expiredAt: expiredAtRaw || undefined,
+    })
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Gagal mengunggah ijazah. Silakan coba lagi."
+    )
+  }
 
   if (!uploadedCertificate.certificateId) {
     throw new Error(
