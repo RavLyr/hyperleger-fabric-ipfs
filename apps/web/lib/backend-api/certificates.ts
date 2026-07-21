@@ -1,5 +1,7 @@
 import { backendFetch } from "./client"
 import type {
+  BulkUploadItemData,
+  BulkUploadJobData,
   CertificateHistoryItem,
   DatabaseCertificate,
   FabricHealthResponse,
@@ -10,9 +12,11 @@ import type {
   IssuerData,
   LedgerCertificateAsset,
   LedgerVerifyResult,
+  ManifestValidationResult,
   RegisterIssuerInput,
   RevocationData,
   UploadCertificateInput,
+  UploadPresignedUrlItem,
   VerifyCertificateResponse,
 } from "./types"
 
@@ -236,4 +240,73 @@ export async function invokeFabric(input: FabricInvokeInput) {
       mode: input.mode ?? "submit",
     }),
   }) as Promise<FabricInvokeResponse>
+}
+
+export async function createBulkJobApi() {
+  const response = await backendFetch("/api/bulk-jobs", {
+    method: "POST",
+  })
+  return response.data as BulkUploadJobData
+}
+
+export async function uploadBulkManifestApi(jobId: string, excelFile: File) {
+  const formData = new FormData()
+  formData.append("manifest", excelFile)
+
+  const response = await backendFetch(`/api/bulk-jobs/${encodeURIComponent(jobId)}/manifest`, {
+    method: "POST",
+    body: formData,
+  })
+
+  return response.data as {
+    job: BulkUploadJobData
+    validation: ManifestValidationResult
+  }
+}
+
+export async function requestUploadUrlsApi(jobId: string, pdfFileNames: string[]) {
+  const response = await backendFetch(`/api/bulk-jobs/${encodeURIComponent(jobId)}/upload-urls`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ pdfFileNames }),
+  })
+
+  return response.data as { urls: UploadPresignedUrlItem[] }
+}
+
+export async function completeBulkUploadApi(jobId: string) {
+  const response = await backendFetch(`/api/bulk-jobs/${encodeURIComponent(jobId)}/complete-upload`, {
+    method: "POST",
+  })
+
+  return response.data as BulkUploadJobData
+}
+
+export async function startBulkJobProcessingApi(jobId: string) {
+  const response = await backendFetch(`/api/bulk-jobs/${encodeURIComponent(jobId)}/start`, {
+    method: "POST",
+  })
+
+  return response.data as {
+    jobId: string
+    status: string
+    enqueuedItemsCount: number
+  }
+}
+
+export async function getBulkJobStatusApi(jobId: string) {
+  const response = await backendFetch(`/api/bulk-jobs/${encodeURIComponent(jobId)}`)
+  return response.data as BulkUploadJobData
+}
+
+export async function getBulkJobItemsApi(jobId: string, page = 1, limit = 50) {
+  const response = await backendFetch(
+    `/api/bulk-jobs/${encodeURIComponent(jobId)}/items?page=${page}&limit=${limit}`
+  )
+  return {
+    items: response.data as BulkUploadItemData[],
+    pagination: (response as unknown as { pagination: { total: number; page: number; limit: number; totalPages: number } }).pagination,
+  }
 }

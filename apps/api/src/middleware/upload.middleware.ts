@@ -6,8 +6,14 @@ export const upload = multer({
     fileSize: 10 * 1024 * 1024,
   },
   fileFilter: (_, file, cb) => {
-    if (file.mimetype !== "application/pdf") {
-      cb(new Error("Only PDF files are allowed"));
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/octet-stream',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      cb(new Error("Only PDF and Excel (.xlsx) files are allowed"));
       return;
     }
 
