@@ -9,7 +9,6 @@ import {
   QrCode,
   Scan,
   ShieldCheck,
-  UserCircle,
   WarningCircle,
   X,
 } from "@phosphor-icons/react"
@@ -212,9 +211,6 @@ function getIssuerName(diploma: Diploma) {
   )
 }
 
-function getDepartmentName(diploma: Diploma) {
-  return diploma.issuer?.departmentName ?? null
-}
 
 function getIpfsGatewayUrl() {
   const gatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? ""
@@ -484,48 +480,17 @@ function DetailItem({
 
 function VerificationResultSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      <div className="lg:col-span-1">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex flex-col items-center gap-4 text-center">
-            <div className="h-24 w-24 animate-pulse rounded-full bg-slate-200" />
-
-            <div className="w-full space-y-3">
-              <div className="mx-auto h-5 w-40 animate-pulse rounded bg-slate-200" />
-              <div className="mx-auto h-4 w-56 animate-pulse rounded bg-slate-200" />
-            </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-6">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
           </div>
-
-          <div className="space-y-4 border-t border-slate-200 pt-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
-              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-              <div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-6 lg:col-span-2">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-            <div className="h-5 w-40 animate-pulse rounded bg-slate-200" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-x-12 gap-y-6 p-6 md:grid-cols-2">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="space-y-2">
-                <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
-                <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div className="mt-6 h-11 w-36 animate-pulse rounded-lg bg-slate-200" />
     </div>
   )
 }
@@ -899,145 +864,77 @@ export default function VerificationClient() {
             )}
 
             {!isSearching && diploma && (
-              <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <div className="lg:col-span-1">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
-                    <div className="mb-6 flex flex-col items-center gap-4 text-center">
-                      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-blue-100 bg-slate-100 text-slate-400">
-                        <UserCircle className="h-20 w-20" />
-                      </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
+                <div className="space-y-6">
+                  <DetailItem
+                    label="Status"
+                    value={getSummaryStatus(diploma)}
+                  />
 
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-950">
-                          {diploma.studentName || "Pemilik Ijazah"}
-                        </h3>
+                  <DetailItem
+                    label="Nama Mahasiswa"
+                    value={diploma.studentName}
+                  />
 
-                        <p className="text-sm font-semibold text-blue-700">
-                          Certificate: {getCertificateNumber(diploma)}
-                        </p>
-                      </div>
-                    </div>
+                  <DetailItem
+                    label="NIM / Student ID"
+                    value={getStudentId(diploma)}
+                    mono
+                  />
 
-                    <div className="space-y-4 border-t border-slate-200 pt-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Jenis Ijazah
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {diploma.certificateType || "IJAZAH"}
-                        </span>
-                      </div>
+                  <DetailItem
+                    label="Program Studi"
+                    value={diploma.studyProgram}
+                  />
 
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Tanggal Terbit
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {formatDisplayDate(diploma.issuedAt) ||
-                            "Belum tersedia"}
-                        </span>
-                      </div>
+                  <DetailItem
+                    label="Fakultas"
+                    value={diploma.faculty}
+                  />
 
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Status
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {getSummaryStatus(diploma)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <DetailItem
+                    label="Universitas"
+                    value={getIssuerName(diploma)}
+                  />
+
+                  <DetailItem
+                    label="Jenjang Pendidikan"
+                    value={diploma.educationLevel}
+                  />
+
+                  <DetailItem
+                    label="Gelar"
+                    value={getCertificateTitle(diploma)}
+                  />
+
+                  <DetailItem
+                    label="Tanggal Lulus"
+                    value={formatDisplayDate(diploma.graduationDate)}
+                  />
+
+                  <DetailItem
+                    label="Tanggal Terbit"
+                    value={formatDisplayDate(diploma.issuedAt)}
+                  />
+
+                  <DetailItem
+                    label="Jenis Ijazah"
+                    value={diploma.certificateType}
+                  />
                 </div>
 
-                <div className="flex flex-col gap-6 lg:col-span-2">
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
-                    <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-                      <h3 className="text-sm font-bold text-slate-950">
-                        Detail Sertifikat
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-x-12 gap-y-6 p-6 md:grid-cols-2">
-                      <DetailItem
-                        label="Nama Mahasiswa"
-                        value={diploma.studentName}
-                      />
-
-                      <DetailItem
-                        label="NIM / Student ID"
-                        value={getStudentId(diploma)}
-                        mono
-                      />
-
-                      <DetailItem
-                        label="Nomor Ijazah"
-                        value={getCertificateNumber(diploma)}
-                        mono
-                      />
-
-                      <DetailItem
-                        label="Universitas"
-                        value={getIssuerName(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Departemen"
-                        value={getDepartmentName(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Fakultas"
-                        value={diploma.faculty}
-                      />
-
-                      <DetailItem
-                        label="Program Studi"
-                        value={diploma.studyProgram}
-                      />
-
-                      <DetailItem
-                        label="Jenjang Pendidikan"
-                        value={diploma.educationLevel}
-                      />
-
-                      <DetailItem
-                        label="Tanggal Lulus"
-                        value={formatDisplayDate(diploma.graduationDate)}
-                      />
-
-                      <DetailItem
-                        label="Gelar"
-                        value={getCertificateTitle(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Jenis Ijazah"
-                        value={diploma.certificateType}
-                      />
-
-                      <DetailItem
-                        label="Tanggal Terbit"
-                        value={formatDisplayDate(diploma.issuedAt)}
-                      />
-                    </div>
-                  </div>
-
-                  {ipfsDocumentUrl && (
-                    <a
-                      href={ipfsDocumentUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-                    >
-                      <ArrowSquareOut className="h-5 w-5" />
-                      Lihat Ijazah
-                    </a>
-                  )}
-                </div>
+                {ipfsDocumentUrl && (
+                  <a
+                    href={ipfsDocumentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                  >
+                    <ArrowSquareOut className="h-5 w-5" />
+                    Lihat Ijazah
+                  </a>
+                )}
               </div>
-            </div>
             )}
           </section>
         )}
