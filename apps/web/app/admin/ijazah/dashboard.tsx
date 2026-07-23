@@ -3,6 +3,7 @@ import AdminShell from "@/components/ui/admin-shell"
 import Footer from "@/components/ui/footer"
 import { FileText, Plus, SealCheck, WarningCircle } from "@phosphor-icons/react/dist/ssr"
 import AdminDashboardTable from "./dashboard-table"
+import AddCertificateMenu from "@/components/ui/add-certificate-menu"
 import { getIssuerScope, requireAdminSession } from "@/lib/auth/session"
 import {
   getDatabaseCertificates,
@@ -153,21 +154,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
-            <Link
-              href="/admin/ijazah/bulk"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-            >
-              <FileText weight="bold" className="h-4 w-4" />
-              Bulk Upload
-            </Link>
-
-            <Link
-              href="/admin/ijazah/add"
-              className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-            >
-              <Plus weight="bold" className="h-4 w-4" />
-              Tambah Ijazah
-            </Link>
+            <AddCertificateMenu session={session} />
           </div>
         </section>
 
