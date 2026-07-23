@@ -77,14 +77,6 @@ type DatabaseCertificate = {
   replacementCertificateId?: string | null
 }
 
-type Issuer = {
-  issuerId: string
-  organizationName?: string | null
-  departmentName?: string | null
-  mspId?: string | null
-  status?: string | null
-}
-
 type Revocation = {
   certificateId?: string | null
   reasonHash?: string | null
@@ -126,14 +118,6 @@ async function getDatabaseCertificateByCertificateId(
       (certificate) => certificate.certificateId === certificateId
     ) ?? null
   )
-}
-
-async function getIssuerById(issuerId: string) {
-  const result = await backendFetch<BackendResponse<Issuer>>(
-    `/api/issuers/${encodeURIComponent(issuerId)}`
-  )
-
-  return result.data ?? null
 }
 
 async function getRevocationByCertificateId(certificateId: string) {
@@ -203,18 +187,6 @@ function getCertificateTitle(
   )
 }
 
-function getOrganizationName(
-  issuer: Issuer | null,
-  dbCertificate: DatabaseCertificate | null
-) {
-  return (
-    issuer?.organizationName ??
-    dbCertificate?.organizationName ??
-    dbCertificate?.universityName ??
-    "-"
-  )
-}
-
 function getCertificateStatus(
   certificate: LedgerCertificate,
   dbCertificate: DatabaseCertificate | null
@@ -260,8 +232,7 @@ export default async function AdminDiplomaDetailPage({
     notFound()
   }
 
-  const [issuer, revocation, dbCertificate] = await Promise.all([
-    getIssuerById(certificate.issuerId).catch(() => null),
+  const [revocation, dbCertificate] = await Promise.all([
     getRevocationByCertificateId(certificate.certificateId),
     scopedDbCertificate ??
       getDatabaseCertificateByCertificateId(
@@ -304,19 +275,6 @@ export default async function AdminDiplomaDetailPage({
               label="Nomor Ijazah"
               value={certificate.certificateNumber}
             />
-
-            <DetailItem
-              label="Jenis Ijazah"
-              value={certificate.certificateType}
-            />
-
-            <DetailItem
-              label="Gelar"
-              value={getCertificateTitle(certificate, dbCertificate)}
-            />
-
-            <DetailItem label="Status" value={status} />
-
             <DetailItem
               label="Fakultas"
               value={dbCertificate?.faculty ?? "-"}
@@ -331,30 +289,17 @@ export default async function AdminDiplomaDetailPage({
               label="Jenjang Pendidikan"
               value={dbCertificate?.educationLevel ?? "-"}
             />
+            <DetailItem
+              label="Gelar"
+              value={getCertificateTitle(certificate, dbCertificate)}
+            />
 
             <DetailItem
               label="Tanggal Lulus"
               value={formatOnlyDate(dbCertificate?.graduationDate)}
             />
 
-            <DetailItem label="Issuer ID" value={certificate.issuerId} />
-
-            <DetailItem
-              label="Universitas"
-              value={getOrganizationName(issuer, dbCertificate)}
-            />
-
-            <DetailItem
-              label="Departemen"
-              value={issuer?.departmentName ?? "-"}
-            />
-
-            <DetailItem
-              label="Tanggal Terbit"
-              value={formatOnlyDate(
-                dbCertificate?.issuedAt ?? certificate.issuedAt
-              )}
-            />
+            <DetailItem label="Status" value={status} />
           </div>
         </section>
 
@@ -374,10 +319,6 @@ export default async function AdminDiplomaDetailPage({
 
               <p className="mt-2">
                 Revoked At: {formatDate(revocation?.revokedAt)}
-              </p>
-
-              <p className="mt-1 break-all font-mono text-xs">
-                Reason Hash: {revocation?.reasonHash ?? "-"}
               </p>
             </div>
           ) : (

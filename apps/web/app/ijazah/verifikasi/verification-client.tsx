@@ -9,21 +9,20 @@ import {
   QrCode,
   Scan,
   ShieldCheck,
-  UserCircle,
   WarningCircle,
+  X,
 } from "@phosphor-icons/react"
+import {
+  Banner,
+  BannerAction,
+  BannerClose,
+  BannerIcon,
+  BannerTitle,
+} from "@/components/ui/banner"
 import Footer from "@/components/ui/footer"
 import PublicShell from "@/components/ui/public-shell"
 
 type VerificationMethod = "input" | "qr"
-
-type CertificateStatus =
-  | "VALID"
-  | "ACTIVE"
-  | "REVOKED"
-  | "REISSUED"
-  | "EXPIRED"
-  | "UNKNOWN"
 
 type Diploma = {
   id?: string | number | null
@@ -59,6 +58,11 @@ type Diploma = {
 
   ipfsCid?: string | null
   documentUrl?: string | null
+  documentStatus?: string | null
+  documentError?: string | null
+  integrityStatus?: string | null
+  message?: string | null
+  valid?: boolean | null
 
   ledgerTxId?: string | null
   ledger_tx_id?: string | null
@@ -70,7 +74,7 @@ type Diploma = {
   uploadedFileSize?: number | null
   file_size?: number | null
 
-  status?: CertificateStatus | string | null
+  status?: string | null
   issuedAt?: string | null
   expiredAt?: string | null
   createdAt?: string | null
@@ -99,7 +103,20 @@ type SearchApiResponse = {
   found?: boolean
   valid?: boolean
   message?: string
+  status?: string | null
+  integrityStatus?: string | null
+  documentStatus?: string | null
+  documentUrl?: string | null
+  documentError?: string | null
   data?: Diploma | Diploma[] | null
+}
+
+type IntegrityBannerVariant = "green" | "red" | "yellow" | "blue" | "neutral"
+
+type IntegrityBanner = {
+  title: string
+  description?: string
+  variant: IntegrityBannerVariant
 }
 
 function formatDisplayDate(value?: string | null) {
@@ -118,6 +135,26 @@ function formatDisplayDate(value?: string | null) {
     month: "long",
     year: "numeric",
   }).format(date)
+}
+
+function DataRow({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-[42%_58%] border-b border-slate-200 text-[13px] sm:grid-cols-[31%_69%] sm:text-sm">
+      <div className="bg-slate-50 px-3 py-2 font-medium uppercase text-slate-700">
+        {label}
+      </div>
+
+      <div className="bg-white px-3 py-2 font-bold text-slate-800">
+        {value || "-"}
+      </div>
+    </div>
+  )
 }
 
 function extractQrValue(value: string) {
@@ -165,62 +202,6 @@ function extractQrValue(value: string) {
   return trimmedValue
 }
 
-function normalizeStatus(status?: string | null): CertificateStatus {
-  const upperStatus = String(status ?? "").toUpperCase()
-
-  if (upperStatus === "VALID") return "VALID"
-  if (upperStatus === "ACTIVE") return "ACTIVE"
-  if (upperStatus === "REVOKED") return "REVOKED"
-  if (upperStatus === "REISSUED") return "REISSUED"
-  if (upperStatus === "EXPIRED") return "EXPIRED"
-
-  return "UNKNOWN"
-}
-
-function getFinalStatus(diploma: Diploma) {
-  return diploma.ledgerData?.status ?? diploma.status ?? "UNKNOWN"
-}
-
-function getStatusLabel(status?: string | null) {
-  const normalizedStatus = normalizeStatus(status)
-
-  if (normalizedStatus === "VALID" || normalizedStatus === "ACTIVE") {
-    return "Terverifikasi"
-  }
-
-  if (normalizedStatus === "REVOKED") {
-    return "Dicabut"
-  }
-
-  if (normalizedStatus === "REISSUED") {
-    return "Diterbitkan Ulang"
-  }
-
-  if (normalizedStatus === "EXPIRED") {
-    return "Kedaluwarsa"
-  }
-
-  return "Status Tidak Diketahui"
-}
-
-function getStatusClassName(status?: string | null) {
-  const normalizedStatus = normalizeStatus(status)
-
-  if (normalizedStatus === "VALID" || normalizedStatus === "ACTIVE") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-200"
-  }
-
-  if (normalizedStatus === "REVOKED") {
-    return "bg-red-50 text-red-700 border-red-200"
-  }
-
-  if (normalizedStatus === "REISSUED" || normalizedStatus === "EXPIRED") {
-    return "bg-yellow-50 text-yellow-700 border-yellow-200"
-  }
-
-  return "bg-slate-50 text-slate-700 border-slate-200"
-}
-
 function getFirstDiploma(data: Diploma | Diploma[] | null | undefined) {
   if (Array.isArray(data)) {
     return data[0] ?? null
@@ -250,14 +231,106 @@ function getIssuerName(diploma: Diploma) {
   )
 }
 
-function getDepartmentName(diploma: Diploma) {
-  return diploma.issuer?.departmentName ?? null
-}
 
 function getIpfsGatewayUrl() {
   const gatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? ""
 
   return gatewayUrl.replace(/\/$/, "")
+}
+
+function normalizeStatus(value?: string | null) {
+  return value?.trim().toUpperCase() ?? ""
+}
+
+function formatApiMessage(message?: string | null) {
+  const normalizedMessage = message?.trim().toLowerCase() ?? ""
+
+  if (!normalizedMessage) {
+    return ""
+  }
+
+  if (normalizedMessage.includes("certificate is valid")) {
+    // return "Data ijazah valid dan telah diverifikasi."
+    return "Certificate data is valid and has been verified."
+  }
+
+  if (normalizedMessage.includes("certificate has been revoked")) {
+    // return "Ijazah telah dicabut."
+    return "Certificate has been revoked.";
+  }
+
+  if (
+    normalizedMessage.includes("certificate not found") ||
+    normalizedMessage.includes("not found in database or ledger")
+  ) {
+    // return "Data ijazah tidak ditemukan."
+    return "Certificate not found.";
+  }
+
+  if (
+    normalizedMessage.includes("possible manipulation") ||
+    normalizedMessage.includes("illegal data")
+  ) {
+    // return "Terdapat indikasi manipulasi data."
+    return "Data manipulation detected.";
+  }
+
+  if (normalizedMessage.includes("document file not found")) {
+    // return "File ijazah tidak ditemukan."
+    return "Document file not found.";
+  }
+
+  return message ?? ""
+}
+
+function isRevoked(diploma: Diploma) {
+  return (
+    diploma.ledgerData?.revoked === true ||
+    normalizeStatus(diploma.ledgerData?.status) === "REVOKED" ||
+    normalizeStatus(diploma.status) === "REVOKED"
+  )
+}
+
+function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
+  if (!diploma) {
+    return null
+  }
+
+  const integrityStatus = normalizeStatus(diploma.integrityStatus)
+  const documentStatus = normalizeStatus(diploma.documentStatus)
+  if (integrityStatus === "DB_LEDGER_MISMATCH") {
+    return {
+      // title: "Indikasi Manipulasi Data",
+      title: "Data Manipulation Indicated",
+      variant: "red",
+    }
+  }
+
+  if (integrityStatus === "LEDGER_RECOVERED") {
+    return {
+      // title: "Data Disinkronkan Ulang",
+      title: "Data Resynchronized",
+      variant: "blue",
+    }
+  }
+
+  if (documentStatus === "FILE_NOT_FOUND") {
+    return {
+      // title: "File Ijazah Tidak Ditemukan",
+      title: "Certificate File Not Found",
+      variant: "yellow",
+    }
+  }
+
+  return null
+}
+
+function canViewDocument(diploma: Diploma) {
+  return (
+    normalizeStatus(diploma.documentStatus) !== "FILE_NOT_FOUND" &&
+    normalizeStatus(diploma.integrityStatus) !== "DB_LEDGER_MISMATCH" &&
+    !isRevoked(diploma)
+  )
 }
 
 function normalizeDocumentUrl(
@@ -304,7 +377,109 @@ function normalizeDocumentUrl(
 }
 
 function getIpfsDocumentUrl(diploma: Diploma) {
+  if (!canViewDocument(diploma)) {
+    return null
+  }
+
   return normalizeDocumentUrl(diploma.documentUrl, diploma.ipfsCid)
+}
+
+function getSummaryStatus(diploma: Diploma) {
+  if (normalizeStatus(diploma.integrityStatus) === "DB_LEDGER_MISMATCH") {
+    return "ACTIVE"
+  }
+
+  return diploma.ledgerData?.status || diploma.status || "Belum tersedia"
+}
+
+function getVerificationWatermark(diploma: Diploma) {
+  if (normalizeStatus(diploma.integrityStatus) === "LEDGER_RECOVERED") {
+    return null
+  }
+
+  if (isRevoked(diploma)) {
+    return {
+      // label: "Ijazah Telah Dicabut",
+      label: "Certificate Has Been Revoked",
+      className: "border-red-200 bg-red-50 text-red-700",
+    }
+  }
+
+  const status = normalizeStatus(diploma.ledgerData?.status ?? diploma.status)
+
+  if (diploma.valid === true || diploma.ledgerData?.valid === true || status === "VALID" || status === "ACTIVE") {
+    return {
+      // label: "Terverifikasi",
+      label: "Verified",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    }
+  }
+
+  return null
+}
+
+function VerificationIntegrityBanner({
+  banner,
+  documentUrl,
+  onClose,
+}: {
+  banner: IntegrityBanner
+  documentUrl?: string | null
+  onClose: () => void
+}) {
+  const className = {
+    green: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    red: "border-red-200 bg-red-50 text-red-800",
+    yellow: "border-amber-200 bg-amber-50 text-amber-900",
+    blue: "border-blue-200 bg-blue-50 text-blue-800",
+    neutral: "border-slate-200 bg-slate-50 text-slate-800",
+  }[banner.variant]
+
+  const iconClassName = {
+    green: "text-emerald-600",
+    red: "text-red-600",
+    yellow: "text-amber-600",
+    blue: "text-blue-600",
+    neutral: "text-slate-500",
+  }[banner.variant]
+
+  const Icon =
+    banner.variant === "green" || banner.variant === "blue"
+      ? ShieldCheck
+      : WarningCircle
+
+  return (
+    <Banner className={className}>
+      <BannerIcon className={iconClassName}>
+        <Icon weight="fill" className="h-5 w-5" />
+      </BannerIcon>
+
+      <div className="min-w-0 flex-1">
+        <BannerTitle>{banner.title}</BannerTitle>
+        {banner.description && (
+          <p className="mt-1 text-sm opacity-90">{banner.description}</p>
+        )}
+
+        {documentUrl && (
+          <BannerAction>
+            <a
+              href={documentUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+            >
+              <ArrowSquareOut className="h-4 w-4" />
+              Lihat Ijazah
+            </a>
+          </BannerAction>
+        )}
+      </div>
+
+      <BannerClose onClick={onClose} aria-label="Dismiss">
+        <X className="h-4 w-4" />
+      </BannerClose>
+    </Banner>
+  )
 }
 
 function DetailItem({
@@ -323,11 +498,11 @@ function DetailItem({
       </span>
 
       <span
-        className={`text-sm font-medium text-slate-900 ${
-          mono ? "break-all font-mono text-xs" : ""
-        }`}
+        className={`text-sm font-medium text-slate-900 ${mono ? "break-all font-mono text-xs" : ""
+          }`}
       >
-        {value || "Belum tersedia"}
+        {/* {value || "Belum tersedia"} */}
+        {value || "Not available"}
       </span>
     </div>
   )
@@ -335,48 +510,17 @@ function DetailItem({
 
 function VerificationResultSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      <div className="lg:col-span-1">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-6 flex flex-col items-center gap-4 text-center">
-            <div className="h-24 w-24 animate-pulse rounded-full bg-slate-200" />
-
-            <div className="w-full space-y-3">
-              <div className="mx-auto h-5 w-40 animate-pulse rounded bg-slate-200" />
-              <div className="mx-auto h-4 w-56 animate-pulse rounded bg-slate-200" />
-            </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-6">
+        {Array.from({ length: 10 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+            <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
           </div>
-
-          <div className="space-y-4 border-t border-slate-200 pt-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
-              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-              <div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-6 lg:col-span-2">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-            <div className="h-5 w-40 animate-pulse rounded bg-slate-200" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-x-12 gap-y-6 p-6 md:grid-cols-2">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="space-y-2">
-                <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
-                <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div className="mt-6 h-11 w-36 animate-pulse rounded-lg bg-slate-200" />
     </div>
   )
 }
@@ -389,6 +533,7 @@ export default function VerificationClient() {
   const [isSearching, setIsSearching] = useState(false)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [isBannerVisible, setIsBannerVisible] = useState(false)
 
   const searchParams = useSearchParams()
   const numberFromUrl =
@@ -402,8 +547,12 @@ export default function VerificationClient() {
   const scannerRef = useRef<QrScanner | null>(null)
   const resultSectionRef = useRef<HTMLElement | null>(null)
 
-  const finalStatus = diploma ? getFinalStatus(diploma) : "UNKNOWN"
+  const integrityBanner = hasSearched && !isSearching && diploma
+    ? getIntegrityBanner(diploma)
+    : null
   const ipfsDocumentUrl = diploma ? getIpfsDocumentUrl(diploma) : null
+
+  const verificationWatermark = diploma ? getVerificationWatermark(diploma) : null
 
   useEffect(() => {
     if (!hasSearched || isSearching) return
@@ -440,7 +589,9 @@ export default function VerificationClient() {
 
     if (!finalQuery) {
       setHasSearched(false)
-      setMessage("Masukkan nomor ijazah terlebih dahulu.")
+      setIsBannerVisible(false)
+      // setMessage("Masukkan nomor ijazah terlebih dahulu.")
+      setMessage("Enter certificate number first")
       setDiploma(null)
       return
     }
@@ -449,6 +600,7 @@ export default function VerificationClient() {
     setIsSearching(true)
     setMessage("")
     setDiploma(null)
+    setIsBannerVisible(false)
 
     try {
       const response = await fetch(
@@ -458,24 +610,45 @@ export default function VerificationClient() {
       const result = (await response.json()) as SearchApiResponse
 
       if (!response.ok || result.success === false) {
-        setMessage(result.message || "Terjadi kesalahan saat mencari data.")
+        setMessage(
+          formatApiMessage(result.message) ||
+          // "Terjadi kesalahan saat mencari data."
+          "An error occurred while searching for the data."
+        )
         setDiploma(null)
+        setIsBannerVisible(false)
         return
       }
 
       const foundDiploma = getFirstDiploma(result.data)
 
       if (!foundDiploma || result.found === false) {
-        setMessage(result.message || "Data ijazah tidak ditemukan.")
+        setMessage(
+          formatApiMessage(result.message) ||
+          // "Data ijazah tidak ditemukan."
+          "No certificate data found."
+        )
         setDiploma(null)
+        setIsBannerVisible(false)
         return
       }
 
-      setDiploma(foundDiploma)
-      setMessage(result.message ?? "")
+      setDiploma({
+        ...foundDiploma,
+        message: foundDiploma.message ?? result.message ?? null,
+        documentStatus: foundDiploma.documentStatus ?? result.documentStatus ?? null,
+        documentUrl: foundDiploma.documentUrl ?? result.documentUrl ?? null,
+        integrityStatus: foundDiploma.integrityStatus ?? result.integrityStatus ?? null,
+        valid: foundDiploma.valid ?? result.valid ?? null,
+        status: foundDiploma.status ?? result.status ?? null,
+      })
+      setMessage(formatApiMessage(result.message))
+      setIsBannerVisible(true)
     } catch {
-      setMessage("Gagal menghubungi server.")
+      // setMessage("Gagal menghubungi server.")
+      setMessage("Failed to connect to server.")
       setDiploma(null)
+      setIsBannerVisible(false)
     } finally {
       setIsSearching(false)
     }
@@ -507,7 +680,8 @@ export default function VerificationClient() {
       setIsCameraActive(true)
       setMessage("")
     } catch {
-      setMessage("Kamera gagal dibuka. Pastikan izin kamera sudah diberikan.")
+      // setMessage("Kamera gagal dibuka. Pastikan izin kamera sudah diberikan.")
+      setMessage("Camera failed to open. Please ensure camera permission is granted.")
       setIsCameraActive(false)
     }
   }
@@ -537,12 +711,14 @@ export default function VerificationClient() {
           </div>
 
           <h1 className="text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">
-            Verifikasi Ijazah
+            {/* Verifikasi Ijazah */}
+            Certificate Verification
           </h1>
 
           <p className="max-w-2xl text-lg leading-relaxed text-slate-600">
-            Masukkan nomor ijazah atau scan QR Code untuk mengecek keaslian data
-            ijazah.
+            {/* Masukkan nomor ijazah atau scan QR Code untuk mengecek keaslian data
+            ijazah. */}
+            Enter the certificate number or scan the QR Code to check the authenticity of the certificate data.
           </p>
         </section>
 
@@ -552,24 +728,23 @@ export default function VerificationClient() {
               <button
                 type="button"
                 onClick={() => handleTabChange("input")}
-                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${
-                  activeMethod === "input"
-                    ? "border-b-2 border-blue-700 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${activeMethod === "input"
+                  ? "border-b-2 border-blue-700 text-blue-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+                  }`}
               >
                 <MagnifyingGlass className="h-5 w-5" />
-                Search Manual
+                {/* Search Manual */}
+                
               </button>
 
               <button
                 type="button"
                 onClick={() => handleTabChange("qr")}
-                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${
-                  activeMethod === "qr"
-                    ? "border-b-2 border-blue-700 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${activeMethod === "qr"
+                  ? "border-b-2 border-blue-700 text-blue-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+                  }`}
               >
                 <Scan className="h-5 w-5" />
                 Scan QR
@@ -584,7 +759,8 @@ export default function VerificationClient() {
                       htmlFor="query"
                       className="text-sm font-semibold text-slate-600"
                     >
-                      Nomor Ijazah / Certificate Number
+                      {/* Nomor Ijazah / Certificate Number */}
+                      Certificate Number
                     </label>
 
                     <div className="relative">
@@ -599,7 +775,8 @@ export default function VerificationClient() {
                             void searchDiploma()
                           }
                         }}
-                        placeholder="Contoh: IJZ-2026-001"
+                        // placeholder="Contoh: IJZ-2026-001"
+                        placeholder="Example: IJZ-2026-001"
                         className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-12 pr-12 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
                       />
 
@@ -630,15 +807,17 @@ export default function VerificationClient() {
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950">
                         <Scan className="h-14 w-14 animate-pulse text-white" />
                         <p className="text-sm font-medium text-white">
-                          Kamera belum aktif
+                          {/* Kamera belum aktif */}
+                          Camera is not active
                         </p>
                       </div>
                     )}
                   </div>
 
                   <p className="text-center text-xs text-slate-500">
-                    Arahkan QR Code pada ijazah ke kamera untuk verifikasi
-                    otomatis.
+                    {/* Arahkan QR Code pada ijazah ke kamera untuk verifikasi
+                    otomatis. */}
+                    Point the QR Code on the certificate to the camera for automatic verification.
                   </p>
 
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -648,7 +827,8 @@ export default function VerificationClient() {
                       disabled={isCameraActive}
                       className="rounded-lg bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Mulai Scan
+                      {/* Mulai Scan */}
+                      Start Scan
                     </button>
 
                     <button
@@ -657,7 +837,8 @@ export default function VerificationClient() {
                       disabled={!isCameraActive}
                       className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Stop Kamera
+                      {/* Stop Kamera */}
+                      Stop Camera
                     </button>
                   </div>
                 </div>
@@ -670,14 +851,10 @@ export default function VerificationClient() {
                 className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <ShieldCheck weight="fill" className="h-5 w-5" />
-                {isSearching ? "Memverifikasi..." : "Verifikasi Dokumen"}
+                {/* {isSearching ? "Memverifikasi..." : "Verifikasi Dokumen"} */}
+                {isSearching ? "Verifying..." : "Verify Document"}
               </button>
 
-              {message && (
-                <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  {message}
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -685,24 +862,33 @@ export default function VerificationClient() {
         {hasSearched && (
           <section
             ref={resultSectionRef}
-            className="w-full scroll-mt-24 border-t border-slate-200 pt-10"
+            className="mx-auto w-full max-w-3xl scroll-mt-24 border-t border-slate-200 pt-10"
           >
             <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <h2 className="text-2xl font-bold text-slate-950">
-                Hasil Verifikasi
+                {/* Hasil Verifikasi */}
+                Verification Results
               </h2>
 
-              {!isSearching && diploma && (
+              {!isSearching && verificationWatermark && (
                 <div
-                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold ${getStatusClassName(
-                    finalStatus
-                  )}`}
+                  className={"inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold " + verificationWatermark.className}
                 >
                   <ShieldCheck weight="fill" className="h-4 w-4" />
-                  {getStatusLabel(finalStatus)}
+                  {verificationWatermark.label}
                 </div>
               )}
             </div>
+
+            {!isSearching && integrityBanner && isBannerVisible && (
+              <div className="mb-6">
+                <VerificationIntegrityBanner
+                  banner={integrityBanner}
+                  documentUrl={ipfsDocumentUrl}
+                  onClose={() => setIsBannerVisible(false)}
+                />
+              </div>
+            )}
 
             {isSearching && <VerificationResultSkeleton />}
 
@@ -713,157 +899,80 @@ export default function VerificationClient() {
                 </div>
 
                 <h3 className="mt-4 text-xl font-bold text-slate-900">
-                  Data Tidak Ditemukan
+                  {/* Data Tidak Ditemukan */}
+                  Data Not Found
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                  Pastikan nomor ijazah yang dimasukkan sudah benar.
+                  {/* Pastikan nomor ijazah yang dimasukkan sudah benar. */}
+                  Ensure the certificate number entered is correct.
                 </p>
               </div>
             )}
 
             {!isSearching && diploma && (
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <div className="lg:col-span-1">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
-                    <div className="mb-6 flex flex-col items-center gap-4 text-center">
-                      <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-blue-100 bg-slate-100 text-slate-400">
-                        <UserCircle className="h-20 w-20" />
-                      </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
+                <section className="overflow-hidden border border-slate-200">
+                  <DataRow
+                    // label="Status Verifikasi"
+                    label="Verification Status"
+                    value={getSummaryStatus(diploma)}
+                  />
 
-                      <div>
-                        <h3 className="text-xl font-bold text-slate-950">
-                          {diploma.studentName || "Pemilik Ijazah"}
-                        </h3>
+                  <DataRow
+                    // label="No Ijazah Nasional"
+                    label="Cetificate Number"
+                    value={diploma.certificateNumber}
+                  />
 
-                        <p className="text-sm font-semibold text-blue-700">
-                          Certificate: {getCertificateNumber(diploma)}
-                        </p>
-                      </div>
-                    </div>
+                  {/* <DataRow label="Nama" value={diploma.studentName} /> */}
+                  <DataRow label="Name" value={diploma.studentName} />
 
-                    <div className="space-y-4 border-t border-slate-200 pt-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Status
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {getStatusLabel(finalStatus)}
-                        </span>
-                      </div>
+                  <DataRow label="NIM" value={getStudentId(diploma)} />
 
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Jenis Ijazah
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {diploma.certificateType || "IJAZAH"}
-                        </span>
-                      </div>
+                  <DataRow
+                    // label="Tanggal Lulus"
+                    label="Graduation Date"
+                    value={formatDisplayDate(diploma.graduationDate)}
+                  />
 
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Tanggal Terbit
-                        </span>
-                        <span className="text-right text-sm font-medium text-slate-900">
-                          {formatDisplayDate(diploma.issuedAt) ||
-                            "Belum tersedia"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  {/* <DataRow label="Fakultas" value={diploma.faculty ?? "-"} /> */}
+                  <DataRow label="Faculty" value={diploma.faculty ?? "-"} />
 
-                <div className="flex flex-col gap-6 lg:col-span-2">
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
-                    <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
-                      <h3 className="text-sm font-bold text-slate-950">
-                        Detail Sertifikat
-                      </h3>
-                    </div>
+                  {/* <DataRow label="Prodi" value={diploma.studyProgram} /> */}
+                  <DataRow label="Study Program" value={diploma.studyProgram} />
 
-                    <div className="grid grid-cols-1 gap-x-12 gap-y-6 p-6 md:grid-cols-2">
-                      <DetailItem
-                        label="Nama Mahasiswa"
-                        value={diploma.studentName}
-                      />
+                  <DataRow
+                    // label="Jenis Ijazah"
+                    label="Certificate Type"
+                    value={diploma.certificateType}
+                  />
 
-                      <DetailItem
-                        label="NIM / Student ID"
-                        value={getStudentId(diploma)}
-                        mono
-                      />
+                  <DataRow label="Program" value={diploma.educationLevel} />
 
-                      <DetailItem
-                        label="Nomor Ijazah"
-                        value={getCertificateNumber(diploma)}
-                        mono
-                      />
+                  <DataRow
+                    // label="Gelar"
+                    label="Title"
+                    value={getCertificateTitle(diploma)}
+                  />
 
-                      <DetailItem
-                        label="Universitas"
-                        value={getIssuerName(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Departemen"
-                        value={getDepartmentName(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Fakultas"
-                        value={diploma.faculty}
-                      />
-
-                      <DetailItem
-                        label="Program Studi"
-                        value={diploma.studyProgram}
-                      />
-
-                      <DetailItem
-                        label="Jenjang Pendidikan"
-                        value={diploma.educationLevel}
-                      />
-
-                      <DetailItem
-                        label="Tanggal Lulus"
-                        value={formatDisplayDate(diploma.graduationDate)}
-                      />
-
-                      <DetailItem
-                        label="Gelar"
-                        value={getCertificateTitle(diploma)}
-                      />
-
-                      <DetailItem
-                        label="Jenis Ijazah"
-                        value={diploma.certificateType}
-                      />
-
-                      <DetailItem
-                        label="Tanggal Terbit"
-                        value={formatDisplayDate(diploma.issuedAt)}
-                      />
-
-                      <DetailItem
-                        label="Status"
-                        value={diploma.ledgerData?.status ?? finalStatus}
-                      />
-                    </div>
-                  </div>
-
-                  {ipfsDocumentUrl && (
-                    <a
-                      href={ipfsDocumentUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-                    >
-                      <ArrowSquareOut className="h-5 w-5" />
-                      Lihat Ijazah
-                    </a>
-                  )}
-                </div>
+                  <DataRow
+                    // label="Tanggal Terbit"
+                    label="Issue Date"
+                    value={formatDisplayDate(diploma.issuedAt)}
+                  />
+                </section>
+                {ipfsDocumentUrl && (
+                  <a
+                    href={ipfsDocumentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                  >
+                    <ArrowSquareOut className="h-5 w-5" />
+                    View Certificate
+                  </a>
+                )}
               </div>
             )}
           </section>

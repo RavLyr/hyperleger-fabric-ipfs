@@ -28,7 +28,7 @@ services:
     restart: unless-stopped
     ports:
       - "${IPFS_GATEWAY_PORT:-8081}:8080"      # Gateway (public)
-      # - "127.0.0.1:5001:5001"                # API (uncomment for host debugging)
+      - "127.0.0.1:5001:5001"                  # API (uncomment for host debugging)
       # - "4001:4001"                           # Swarm (uncomment for public IPFS network)
     volumes:
       - ${DATA_ROOT:-./.docker-data}/ipfs:/data/ipfs

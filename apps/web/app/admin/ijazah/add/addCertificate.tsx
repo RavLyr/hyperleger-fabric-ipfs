@@ -14,12 +14,16 @@ import {
 } from "@phosphor-icons/react"
 
 const fieldControlClassName = "mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+const ALLOWED_MIME_TYPE = "application/pdf"
 
 export default function AddCertificate() {
   const formRef = useRef<HTMLFormElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const confirmedSubmitRef = useRef(false)
 
   const [fileName, setFileName] = useState("")
+  const [fileError, setFileError] = useState("")
   const [selectedFaculty, setSelectedFaculty] = useState("")
   const [selectedStudyProgram, setSelectedStudyProgram] = useState("")
   const [graduationDate, setGraduationDate] = useState("")
@@ -77,13 +81,47 @@ export default function AddCertificate() {
 
     if (!file) {
       setFileName("")
+      setFileError("")
       return
     }
 
+    const error = getCertificateFileError(file)
+
+    if (error) {
+      setFileName("")
+      setFileError(error)
+      event.target.value = ""
+      return
+    }
+
+    setFileError("")
     setFileName(file.name)
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const certificateFile = new FormData(event.currentTarget).get(
+      "certificateFile"
+    )
+    const fileError =
+      certificateFile instanceof File
+        ? getCertificateFileError(certificateFile)
+        : ""
+
+    if (fileError) {
+      event.preventDefault()
+      confirmedSubmitRef.current = false
+      setShowConfirmDialog(false)
+      setIsSubmitting(false)
+      setFileName("")
+      setFileError(fileError)
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+
+      return
+    }
+
     if (confirmedSubmitRef.current) {
       setIsSubmitting(true)
       return
@@ -298,6 +336,7 @@ export default function AddCertificate() {
                   )}
 
                   <input
+                    ref={fileInputRef}
                     name="certificateFile"
                     type="file"
                     accept="application/pdf"
@@ -306,6 +345,12 @@ export default function AddCertificate() {
                     className="sr-only"
                   />
                 </label>
+
+                {fileError && (
+                  <p className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                    {fileError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -382,6 +427,18 @@ export default function AddCertificate() {
       )}
     </AdminShell>
   )
+}
+
+function getCertificateFileError(file: File) {
+  if (file.type !== ALLOWED_MIME_TYPE) {
+    return "File ijazah harus berformat PDF."
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    return "Ukuran file ijazah maksimal 10MB."
+  }
+
+  return ""
 }
 
 function Field({

@@ -99,6 +99,9 @@ export type VerifyCertificateResponse = {
   ledgerData?: LedgerVerifyResult | null
   dbData?: DatabaseCertificate | null
   documentUrl?: string | null
+  documentStatus?: string | null
+  documentError?: string | null
+  integrityStatus?: string | null
 }
 
 export type UploadCertificateInput = {
@@ -207,4 +210,72 @@ export type RegisterIssuerAdminInput = {
   username: string
   email: string
   password: string
+}
+
+export type BulkJobStatus =
+  | "CREATED"
+  | "UPLOADING"
+  | "VALIDATING"
+  | "READY"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "COMPLETED_WITH_ERRORS"
+  | "FAILED"
+  | "CANCELLED"
+
+export type BulkItemStatus =
+  | "PENDING"
+  | "VALIDATED"
+  | "STAGED"
+  | "IPFS_UPLOADED"
+  | "FABRIC_COMMITTED"
+  | "DB_PERSISTED"
+  | "COMPLETED"
+  | "FAILED"
+
+export type BulkUploadJobData = {
+  id: number
+  jobId: string
+  issuerId: string
+  status: BulkJobStatus
+  totalItems: number
+  processedItems: number
+  failedItems: number
+  manifestPath?: string | null
+  errorMessage?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type BulkUploadItemData = {
+  id: number
+  itemId: string
+  jobId: string
+  certificateNumber: string
+  pdfFileName: string
+  metadata: Record<string, unknown>
+  status: BulkItemStatus
+  attempts: number
+  errorMessage?: string | null
+  stagedObjectKey?: string | null
+  ipfsCid?: string | null
+  ledgerTxId?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type ManifestValidationResult = {
+  totalRows: number
+  validRowsCount: number
+  invalidRows: Array<{
+    rowNumber: number
+    error: string
+  }>
+}
+
+export type UploadPresignedUrlItem = {
+  itemId: string
+  pdfFileName: string
+  stagedObjectKey: string
+  uploadUrl: string
 }

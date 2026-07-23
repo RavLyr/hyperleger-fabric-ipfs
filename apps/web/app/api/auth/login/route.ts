@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const isHttps = isAuthCookieSecure()
 
     response.cookies.set(AUTH_COOKIES.accessToken, accessToken, {
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "lax",
       secure: isHttps,
       path: "/",
