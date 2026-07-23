@@ -152,13 +152,23 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
             </div>
           </div>
 
-          <Link
-            href="/admin/ijazah/add"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-          >
-            <Plus weight="bold" className="h-4 w-4" />
-            Tambah Ijazah
-          </Link>
+          <div className="flex shrink-0 items-center gap-3">
+            <Link
+              href="/admin/ijazah/bulk"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+            >
+              <FileText weight="bold" className="h-4 w-4" />
+              Bulk Upload
+            </Link>
+
+            <Link
+              href="/admin/ijazah/add"
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              <Plus weight="bold" className="h-4 w-4" />
+              Tambah Ijazah
+            </Link>
+          </div>
         </section>
 
         <section className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

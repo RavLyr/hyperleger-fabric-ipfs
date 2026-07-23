@@ -1,5 +1,3 @@
-import { cookies } from "next/headers"
-
 type BackendFetchOptions = {
   auth?: boolean
 }
@@ -21,13 +19,18 @@ export class BackendApiError extends Error {
 }
 
 function getBackendBaseUrl() {
-  const baseUrl = process.env.BACKEND_BASE_URL
-
-  if (!baseUrl) {
-    throw new Error("BACKEND_BASE_URL belum diset.")
-  }
+  const baseUrl =
+    process.env.BACKEND_BASE_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_BASE_URL ||
+    "http://localhost:3000"
 
   return baseUrl.replace(/\/$/, "")
+}
+
+function getClientCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"))
+  return match ? decodeURIComponent(match[2]) : undefined
 }
 
 export async function backendFetch<T = BackendErrorResponse>(
@@ -40,8 +43,17 @@ export async function backendFetch<T = BackendErrorResponse>(
   const shouldUseAuth = options.auth ?? true
 
   if (shouldUseAuth) {
-    const cookieStore = await cookies()
-    const token = cookieStore.get("backend_access_token")?.value
+    let token: string | undefined
+
+    if (typeof window === "undefined") {
+      // Server-side (Node.js environment)
+      const { cookies } = await import("next/headers")
+      const cookieStore = await cookies()
+      token = cookieStore.get("backend_access_token")?.value
+    } else {
+      // Client-side (Browser environment)
+      token = getClientCookie("backend_access_token")
+    }
 
     if (token) {
       headers.set("Authorization", `Bearer ${token}`)
