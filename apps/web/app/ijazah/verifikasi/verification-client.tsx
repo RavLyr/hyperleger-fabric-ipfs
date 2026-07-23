@@ -137,6 +137,26 @@ function formatDisplayDate(value?: string | null) {
   }).format(date)
 }
 
+function DataRow({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-[42%_58%] border-b border-slate-200 text-[13px] sm:grid-cols-[31%_69%] sm:text-sm">
+      <div className="bg-slate-50 px-3 py-2 font-medium uppercase text-slate-700">
+        {label}
+      </div>
+
+      <div className="bg-white px-3 py-2 font-bold text-slate-800">
+        {value || "-"}
+      </div>
+    </div>
+  )
+}
+
 function extractQrValue(value: string) {
   const trimmedValue = value.trim()
 
@@ -230,29 +250,34 @@ function formatApiMessage(message?: string | null) {
   }
 
   if (normalizedMessage.includes("certificate is valid")) {
-    return "Data ijazah valid dan telah diverifikasi."
+    // return "Data ijazah valid dan telah diverifikasi."
+    return "Certificate data is valid and has been verified."
   }
 
   if (normalizedMessage.includes("certificate has been revoked")) {
-    return "Ijazah telah dicabut."
+    // return "Ijazah telah dicabut."
+    return "Certificate has been revoked.";
   }
 
   if (
     normalizedMessage.includes("certificate not found") ||
     normalizedMessage.includes("not found in database or ledger")
   ) {
-    return "Data ijazah tidak ditemukan."
+    // return "Data ijazah tidak ditemukan."
+    return "Certificate not found.";
   }
 
   if (
     normalizedMessage.includes("possible manipulation") ||
     normalizedMessage.includes("illegal data")
   ) {
-    return "Terdapat indikasi manipulasi data."
+    // return "Terdapat indikasi manipulasi data."
+    return "Data manipulation detected.";
   }
 
   if (normalizedMessage.includes("document file not found")) {
-    return "File ijazah tidak ditemukan."
+    // return "File ijazah tidak ditemukan."
+    return "Document file not found.";
   }
 
   return message ?? ""
@@ -275,21 +300,24 @@ function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
   const documentStatus = normalizeStatus(diploma.documentStatus)
   if (integrityStatus === "DB_LEDGER_MISMATCH") {
     return {
-      title: "Indikasi Manipulasi Data",
+      // title: "Indikasi Manipulasi Data",
+      title: "Data Manipulation Indicated",
       variant: "red",
     }
   }
 
   if (integrityStatus === "LEDGER_RECOVERED") {
     return {
-      title: "Data Disinkronkan Ulang",
+      // title: "Data Disinkronkan Ulang",
+      title: "Data Resynchronized",
       variant: "blue",
     }
   }
 
   if (documentStatus === "FILE_NOT_FOUND") {
     return {
-      title: "File Ijazah Tidak Ditemukan",
+      // title: "File Ijazah Tidak Ditemukan",
+      title: "Certificate File Not Found",
       variant: "yellow",
     }
   }
@@ -371,7 +399,8 @@ function getVerificationWatermark(diploma: Diploma) {
 
   if (isRevoked(diploma)) {
     return {
-      label: "Ijazah Telah Dicabut",
+      // label: "Ijazah Telah Dicabut",
+      label: "Certificate Has Been Revoked",
       className: "border-red-200 bg-red-50 text-red-700",
     }
   }
@@ -380,7 +409,8 @@ function getVerificationWatermark(diploma: Diploma) {
 
   if (diploma.valid === true || diploma.ledgerData?.valid === true || status === "VALID" || status === "ACTIVE") {
     return {
-      label: "Terverifikasi",
+      // label: "Terverifikasi",
+      label: "Verified",
       className: "border-emerald-200 bg-emerald-50 text-emerald-700",
     }
   }
@@ -445,7 +475,7 @@ function VerificationIntegrityBanner({
         )}
       </div>
 
-      <BannerClose onClick={onClose} aria-label="Tutup banner">
+      <BannerClose onClick={onClose} aria-label="Dismiss">
         <X className="h-4 w-4" />
       </BannerClose>
     </Banner>
@@ -468,11 +498,11 @@ function DetailItem({
       </span>
 
       <span
-        className={`text-sm font-medium text-slate-900 ${
-          mono ? "break-all font-mono text-xs" : ""
-        }`}
+        className={`text-sm font-medium text-slate-900 ${mono ? "break-all font-mono text-xs" : ""
+          }`}
       >
-        {value || "Belum tersedia"}
+        {/* {value || "Belum tersedia"} */}
+        {value || "Not available"}
       </span>
     </div>
   )
@@ -560,7 +590,8 @@ export default function VerificationClient() {
     if (!finalQuery) {
       setHasSearched(false)
       setIsBannerVisible(false)
-      setMessage("Masukkan nomor ijazah terlebih dahulu.")
+      // setMessage("Masukkan nomor ijazah terlebih dahulu.")
+      setMessage("Enter certificate number first")
       setDiploma(null)
       return
     }
@@ -581,7 +612,8 @@ export default function VerificationClient() {
       if (!response.ok || result.success === false) {
         setMessage(
           formatApiMessage(result.message) ||
-            "Terjadi kesalahan saat mencari data."
+          // "Terjadi kesalahan saat mencari data."
+          "An error occurred while searching for the data."
         )
         setDiploma(null)
         setIsBannerVisible(false)
@@ -592,7 +624,9 @@ export default function VerificationClient() {
 
       if (!foundDiploma || result.found === false) {
         setMessage(
-          formatApiMessage(result.message) || "Data ijazah tidak ditemukan."
+          formatApiMessage(result.message) ||
+          // "Data ijazah tidak ditemukan."
+          "No certificate data found."
         )
         setDiploma(null)
         setIsBannerVisible(false)
@@ -611,7 +645,8 @@ export default function VerificationClient() {
       setMessage(formatApiMessage(result.message))
       setIsBannerVisible(true)
     } catch {
-      setMessage("Gagal menghubungi server.")
+      // setMessage("Gagal menghubungi server.")
+      setMessage("Failed to connect to server.")
       setDiploma(null)
       setIsBannerVisible(false)
     } finally {
@@ -645,7 +680,8 @@ export default function VerificationClient() {
       setIsCameraActive(true)
       setMessage("")
     } catch {
-      setMessage("Kamera gagal dibuka. Pastikan izin kamera sudah diberikan.")
+      // setMessage("Kamera gagal dibuka. Pastikan izin kamera sudah diberikan.")
+      setMessage("Camera failed to open. Please ensure camera permission is granted.")
       setIsCameraActive(false)
     }
   }
@@ -675,12 +711,14 @@ export default function VerificationClient() {
           </div>
 
           <h1 className="text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">
-            Verifikasi Ijazah
+            {/* Verifikasi Ijazah */}
+            Certificate Verification
           </h1>
 
           <p className="max-w-2xl text-lg leading-relaxed text-slate-600">
-            Masukkan nomor ijazah atau scan QR Code untuk mengecek keaslian data
-            ijazah.
+            {/* Masukkan nomor ijazah atau scan QR Code untuk mengecek keaslian data
+            ijazah. */}
+            Enter the certificate number or scan the QR Code to check the authenticity of the certificate data.
           </p>
         </section>
 
@@ -690,24 +728,23 @@ export default function VerificationClient() {
               <button
                 type="button"
                 onClick={() => handleTabChange("input")}
-                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${
-                  activeMethod === "input"
-                    ? "border-b-2 border-blue-700 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${activeMethod === "input"
+                  ? "border-b-2 border-blue-700 text-blue-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+                  }`}
               >
                 <MagnifyingGlass className="h-5 w-5" />
-                Search Manual
+                {/* Search Manual */}
+                
               </button>
 
               <button
                 type="button"
                 onClick={() => handleTabChange("qr")}
-                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${
-                  activeMethod === "qr"
-                    ? "border-b-2 border-blue-700 text-blue-700"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 px-3 py-4 text-sm font-semibold transition ${activeMethod === "qr"
+                  ? "border-b-2 border-blue-700 text-blue-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-blue-700"
+                  }`}
               >
                 <Scan className="h-5 w-5" />
                 Scan QR
@@ -722,7 +759,8 @@ export default function VerificationClient() {
                       htmlFor="query"
                       className="text-sm font-semibold text-slate-600"
                     >
-                      Nomor Ijazah / Certificate Number
+                      {/* Nomor Ijazah / Certificate Number */}
+                      Certificate Number
                     </label>
 
                     <div className="relative">
@@ -737,7 +775,8 @@ export default function VerificationClient() {
                             void searchDiploma()
                           }
                         }}
-                        placeholder="Contoh: IJZ-2026-001"
+                        // placeholder="Contoh: IJZ-2026-001"
+                        placeholder="Example: IJZ-2026-001"
                         className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-12 pr-12 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
                       />
 
@@ -768,15 +807,17 @@ export default function VerificationClient() {
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950">
                         <Scan className="h-14 w-14 animate-pulse text-white" />
                         <p className="text-sm font-medium text-white">
-                          Kamera belum aktif
+                          {/* Kamera belum aktif */}
+                          Camera is not active
                         </p>
                       </div>
                     )}
                   </div>
 
                   <p className="text-center text-xs text-slate-500">
-                    Arahkan QR Code pada ijazah ke kamera untuk verifikasi
-                    otomatis.
+                    {/* Arahkan QR Code pada ijazah ke kamera untuk verifikasi
+                    otomatis. */}
+                    Point the QR Code on the certificate to the camera for automatic verification.
                   </p>
 
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -786,7 +827,8 @@ export default function VerificationClient() {
                       disabled={isCameraActive}
                       className="rounded-lg bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Mulai Scan
+                      {/* Mulai Scan */}
+                      Start Scan
                     </button>
 
                     <button
@@ -795,7 +837,8 @@ export default function VerificationClient() {
                       disabled={!isCameraActive}
                       className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      Stop Kamera
+                      {/* Stop Kamera */}
+                      Stop Camera
                     </button>
                   </div>
                 </div>
@@ -808,7 +851,8 @@ export default function VerificationClient() {
                 className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <ShieldCheck weight="fill" className="h-5 w-5" />
-                {isSearching ? "Memverifikasi..." : "Verifikasi Dokumen"}
+                {/* {isSearching ? "Memverifikasi..." : "Verifikasi Dokumen"} */}
+                {isSearching ? "Verifying..." : "Verify Document"}
               </button>
 
             </div>
@@ -818,11 +862,12 @@ export default function VerificationClient() {
         {hasSearched && (
           <section
             ref={resultSectionRef}
-            className="w-full scroll-mt-24 border-t border-slate-200 pt-10"
+            className="mx-auto w-full max-w-3xl scroll-mt-24 border-t border-slate-200 pt-10"
           >
             <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <h2 className="text-2xl font-bold text-slate-950">
-                Hasil Verifikasi
+                {/* Hasil Verifikasi */}
+                Verification Results
               </h2>
 
               {!isSearching && verificationWatermark && (
@@ -854,75 +899,69 @@ export default function VerificationClient() {
                 </div>
 
                 <h3 className="mt-4 text-xl font-bold text-slate-900">
-                  Data Tidak Ditemukan
+                  {/* Data Tidak Ditemukan */}
+                  Data Not Found
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                  Pastikan nomor ijazah yang dimasukkan sudah benar.
+                  {/* Pastikan nomor ijazah yang dimasukkan sudah benar. */}
+                  Ensure the certificate number entered is correct.
                 </p>
               </div>
             )}
 
             {!isSearching && diploma && (
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
-                <div className="space-y-6">
-                  <DetailItem
-                    label="Status"
+                <section className="overflow-hidden border border-slate-200">
+                  <DataRow
+                    // label="Status Verifikasi"
+                    label="Verification Status"
                     value={getSummaryStatus(diploma)}
                   />
 
-                  <DetailItem
-                    label="Nama Mahasiswa"
-                    value={diploma.studentName}
+                  <DataRow
+                    // label="No Ijazah Nasional"
+                    label="Cetificate Number"
+                    value={diploma.certificateNumber}
                   />
 
-                  <DetailItem
-                    label="NIM / Student ID"
-                    value={getStudentId(diploma)}
-                    mono
-                  />
+                  {/* <DataRow label="Nama" value={diploma.studentName} /> */}
+                  <DataRow label="Name" value={diploma.studentName} />
 
-                  <DetailItem
-                    label="Program Studi"
-                    value={diploma.studyProgram}
-                  />
+                  <DataRow label="NIM" value={getStudentId(diploma)} />
 
-                  <DetailItem
-                    label="Fakultas"
-                    value={diploma.faculty}
-                  />
-
-                  <DetailItem
-                    label="Universitas"
-                    value={getIssuerName(diploma)}
-                  />
-
-                  <DetailItem
-                    label="Jenjang Pendidikan"
-                    value={diploma.educationLevel}
-                  />
-
-                  <DetailItem
-                    label="Gelar"
-                    value={getCertificateTitle(diploma)}
-                  />
-
-                  <DetailItem
-                    label="Tanggal Lulus"
+                  <DataRow
+                    // label="Tanggal Lulus"
+                    label="Graduation Date"
                     value={formatDisplayDate(diploma.graduationDate)}
                   />
 
-                  <DetailItem
-                    label="Tanggal Terbit"
-                    value={formatDisplayDate(diploma.issuedAt)}
-                  />
+                  {/* <DataRow label="Fakultas" value={diploma.faculty ?? "-"} /> */}
+                  <DataRow label="Faculty" value={diploma.faculty ?? "-"} />
 
-                  <DetailItem
-                    label="Jenis Ijazah"
+                  {/* <DataRow label="Prodi" value={diploma.studyProgram} /> */}
+                  <DataRow label="Study Program" value={diploma.studyProgram} />
+
+                  <DataRow
+                    // label="Jenis Ijazah"
+                    label="Certificate Type"
                     value={diploma.certificateType}
                   />
-                </div>
 
+                  <DataRow label="Program" value={diploma.educationLevel} />
+
+                  <DataRow
+                    // label="Gelar"
+                    label="Title"
+                    value={getCertificateTitle(diploma)}
+                  />
+
+                  <DataRow
+                    // label="Tanggal Terbit"
+                    label="Issue Date"
+                    value={formatDisplayDate(diploma.issuedAt)}
+                  />
+                </section>
                 {ipfsDocumentUrl && (
                   <a
                     href={ipfsDocumentUrl}
@@ -931,7 +970,7 @@ export default function VerificationClient() {
                     className="mt-6 inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
                   >
                     <ArrowSquareOut className="h-5 w-5" />
-                    Lihat Ijazah
+                    View Certificate
                   </a>
                 )}
               </div>
