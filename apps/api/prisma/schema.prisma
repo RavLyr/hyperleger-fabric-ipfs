@@ -24,6 +24,29 @@ enum FabricTransactionStatus {
   FAILED
 }
 
+enum BulkUploadJobStatus {
+  CREATED
+  UPLOADING
+  VALIDATING
+  READY
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+  CANCELLED
+}
+
+enum BulkUploadItemStatus {
+  PENDING
+  VALIDATED
+  STAGED
+  IPFS_UPLOADED
+  FABRIC_COMMITTED
+  DB_PERSISTED
+  COMPLETED
+  FAILED
+}
+
 model Issuer {
   id                 Int                 @id @default(autoincrement())
   issuerId           String              @unique @map("issuer_id")
@@ -47,6 +70,7 @@ model Issuer {
   certificates       Certificate[]
   revocations        Revocation[]
   fabricTransactions FabricTransaction[]
+  bulkUploadJobs     BulkUploadJob[]
 
   @@map("issuers")
 }
@@ -130,3 +154,48 @@ model FabricTransaction {
   @@index([createdAt])
   @@map("fabric_transactions")
 }
+
+model BulkUploadJob {
+  id              Int                 @id @default(autoincrement())
+  jobId           String              @unique @map("job_id")
+  issuerId        String              @map("issuer_id")
+  status          BulkUploadJobStatus @default(CREATED)
+  totalItems      Int                 @default(0) @map("total_items")
+  processedItems  Int                 @default(0) @map("processed_items")
+  failedItems     Int                 @default(0) @map("failed_items")
+  manifestPath    String?             @map("manifest_path")
+  errorMessage    String?             @map("error_message")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  issuer          Issuer              @relation(fields: [issuerId], references: [issuerId], onUpdate: Cascade, onDelete: Restrict)
+  items           BulkUploadItem[]
+
+  @@index([issuerId])
+  @@index([status])
+  @@map("bulk_upload_jobs")
+}
+
+model BulkUploadItem {
+  id                Int                  @id @default(autoincrement())
+  itemId            String               @unique @map("item_id")
+  jobId             String               @map("job_id")
+  certificateNumber String               @map("certificate_number")
+  pdfFileName       String               @map("pdf_file_name")
+  metadata          Json                 @map("metadata")
+  status            BulkUploadItemStatus @default(PENDING)
+  attempts          Int                  @default(0)
+  errorMessage      String?              @map("error_message")
+  stagedObjectKey   String?              @map("staged_object_key")
+  ipfsCid           String?              @map("ipfs_cid")
+  ledgerTxId        String?              @map("ledger_tx_id")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  job               BulkUploadJob        @relation(fields: [jobId], references: [jobId], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique([jobId, certificateNumber])
+  @@index([jobId, status])
+  @@map("bulk_upload_items")
+}
+

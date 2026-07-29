@@ -77,14 +77,6 @@ type DatabaseCertificate = {
   replacementCertificateId?: string | null
 }
 
-type Issuer = {
-  issuerId: string
-  organizationName?: string | null
-  departmentName?: string | null
-  mspId?: string | null
-  status?: string | null
-}
-
 type Revocation = {
   certificateId?: string | null
   reasonHash?: string | null
@@ -126,14 +118,6 @@ async function getDatabaseCertificateByCertificateId(
       (certificate) => certificate.certificateId === certificateId
     ) ?? null
   )
-}
-
-async function getIssuerById(issuerId: string) {
-  const result = await backendFetch<BackendResponse<Issuer>>(
-    `/api/issuers/${encodeURIComponent(issuerId)}`
-  )
-
-  return result.data ?? null
 }
 
 async function getRevocationByCertificateId(certificateId: string) {
@@ -203,18 +187,6 @@ function getCertificateTitle(
   )
 }
 
-function getOrganizationName(
-  issuer: Issuer | null,
-  dbCertificate: DatabaseCertificate | null
-) {
-  return (
-    issuer?.organizationName ??
-    dbCertificate?.organizationName ??
-    dbCertificate?.universityName ??
-    "-"
-  )
-}
-
 function getCertificateStatus(
   certificate: LedgerCertificate,
   dbCertificate: DatabaseCertificate | null
@@ -260,8 +232,7 @@ export default async function AdminDiplomaDetailPage({
     notFound()
   }
 
-  const [issuer, revocation, dbCertificate] = await Promise.all([
-    getIssuerById(certificate.issuerId).catch(() => null),
+  const [revocation, dbCertificate] = await Promise.all([
     getRevocationByCertificateId(certificate.certificateId),
     scopedDbCertificate ??
       getDatabaseCertificateByCertificateId(
@@ -280,104 +251,74 @@ export default async function AdminDiplomaDetailPage({
             href="/admin/ijazah"
             className="text-sm font-semibold text-blue-700 hover:text-blue-600"
           >
-            ← Kembali ke Data Ijazah
+            ← Back to Certificates Data
           </Link>
 
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
-            Detail Ijazah
+            Certificate Details
           </h1>
         </div>
 
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <DetailItem
-              label="Nama Mahasiswa"
+              label="Student Name"
               value={dbCertificate?.studentName ?? "-"}
             />
 
             <DetailItem
-              label="NIM"
+              label="Student ID"
               value={dbCertificate?.studentId ?? "-"}
             />
 
             <DetailItem
-              label="Nomor Ijazah"
+              label="Certificate Number"
               value={certificate.certificateNumber}
             />
-
             <DetailItem
-              label="Jenis Ijazah"
-              value={certificate.certificateType}
-            />
-
-            <DetailItem
-              label="Gelar"
-              value={getCertificateTitle(certificate, dbCertificate)}
-            />
-
-            <DetailItem label="Status" value={status} />
-
-            <DetailItem
-              label="Fakultas"
+              label="Faculty"
               value={dbCertificate?.faculty ?? "-"}
             />
 
             <DetailItem
-              label="Program Studi"
+              label="Study Program"
               value={dbCertificate?.studyProgram ?? "-"}
             />
 
             <DetailItem
-              label="Jenjang Pendidikan"
+              label="Education Level"
               value={dbCertificate?.educationLevel ?? "-"}
+            />
+            <DetailItem
+              label="Degree"
+              value={getCertificateTitle(certificate, dbCertificate)}
             />
 
             <DetailItem
-              label="Tanggal Lulus"
+              label="Graduation Date"
               value={formatOnlyDate(dbCertificate?.graduationDate)}
             />
 
-            <DetailItem label="Issuer ID" value={certificate.issuerId} />
-
-            <DetailItem
-              label="Universitas"
-              value={getOrganizationName(issuer, dbCertificate)}
-            />
-
-            <DetailItem
-              label="Departemen"
-              value={issuer?.departmentName ?? "-"}
-            />
-
-            <DetailItem
-              label="Tanggal Terbit"
-              value={formatOnlyDate(
-                dbCertificate?.issuedAt ?? certificate.issuedAt
-              )}
-            />
+            <DetailItem label="Status" value={status} />
           </div>
         </section>
 
         <section className="mt-8 rounded-xl border border-red-200 bg-white p-6 shadow-sm">
           <div className="mb-4">
-            <h2 className="text-lg font-bold text-red-700">Revoke Ijazah</h2>
+            <h2 className="text-lg font-bold text-red-700">Revoke Certificate</h2>
 
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Gunakan fitur ini jika ijazah perlu dicabut karena kesalahan data,
-              pelanggaran, atau alasan administratif lain.
+              Use this feature if a certificate needs to be revoked due to data errors,
+              violations, or other administrative reasons.
             </p>
           </div>
 
           {isRevoked(status) ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              <p className="font-bold">Ijazah ini sudah dicabut.</p>
+              <p className="font-bold">This certificate has been revoked.</p>
 
               <p className="mt-2">
                 Revoked At: {formatDate(revocation?.revokedAt)}
-              </p>
-
-              <p className="mt-1 break-all font-mono text-xs">
-                Reason Hash: {revocation?.reasonHash ?? "-"}
               </p>
             </div>
           ) : (

@@ -14,12 +14,16 @@ import {
 } from "@phosphor-icons/react"
 
 const fieldControlClassName = "mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+const ALLOWED_MIME_TYPE = "application/pdf"
 
 export default function AddCertificate() {
   const formRef = useRef<HTMLFormElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const confirmedSubmitRef = useRef(false)
 
   const [fileName, setFileName] = useState("")
+  const [fileError, setFileError] = useState("")
   const [selectedFaculty, setSelectedFaculty] = useState("")
   const [selectedStudyProgram, setSelectedStudyProgram] = useState("")
   const [graduationDate, setGraduationDate] = useState("")
@@ -77,13 +81,47 @@ export default function AddCertificate() {
 
     if (!file) {
       setFileName("")
+      setFileError("")
       return
     }
 
+    const error = getCertificateFileError(file)
+
+    if (error) {
+      setFileName("")
+      setFileError(error)
+      event.target.value = ""
+      return
+    }
+
+    setFileError("")
     setFileName(file.name)
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const certificateFile = new FormData(event.currentTarget).get(
+      "certificateFile"
+    )
+    const fileError =
+      certificateFile instanceof File
+        ? getCertificateFileError(certificateFile)
+        : ""
+
+    if (fileError) {
+      event.preventDefault()
+      confirmedSubmitRef.current = false
+      setShowConfirmDialog(false)
+      setIsSubmitting(false)
+      setFileName("")
+      setFileError(fileError)
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+
+      return
+    }
+
     if (confirmedSubmitRef.current) {
       setIsSubmitting(true)
       return
@@ -115,15 +153,15 @@ export default function AddCertificate() {
               className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-600"
             >
               <ArrowLeft className="h-4 w-4" />
-              Kembali ke Data Ijazah
+              Back to Certificates Data
             </Link>
 
             <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
-              Tambah Ijazah
+              Add Certificate
             </h1>
 
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Masukkan data ijazah yang akan diterbitkan.
+              Enter the certificate data to be issued.
             </p>
           </div>
 
@@ -136,43 +174,43 @@ export default function AddCertificate() {
             <div className="border-b border-slate-200 p-6">
               <h2 className="flex items-center gap-2 text-lg font-bold text-slate-950">
                 <FileText className="h-5 w-5 text-blue-700" />
-                Data Sertifikat
+                Certificate Data
               </h2>
             </div>
 
             <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
               <Field
-                label="Nama Mahasiswa"
+                label="Student Name"
                 name="studentName"
-                placeholder="Contoh: Salimul Qolbi"
+                placeholder="Example: John Doe"
                 required
               />
 
               <Field
-                label="NIM / Student ID"
+                label="Student ID"
                 name="studentId"
-                placeholder="Contoh: 21120125120016"
+                placeholder="Example: 21120125120016"
                 required
               />
 
               <Field
-                label="Nomor Ijazah / Certificate Number"
+                label="Certificate Number"
                 name="certificateNumber"
-                placeholder="Contoh: IJZ-2026-001"
+                placeholder="Example: CRT-2026-001"
                 required
               />
 
               <Field
-                label="Jenis Ijazah"
+                label="Certificate Type"
                 name="certificateType"
-                placeholder="Contoh: IJAZAH"
+                placeholder="Example: CERTIFICATE"
                 defaultValue="IJAZAH"
                 required
               />
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
-                  Fakultas / Sekolah
+                  Faculty / School
                 </label>
 
                 <select
@@ -182,7 +220,7 @@ export default function AddCertificate() {
                   onChange={handleFacultyChange}
                   className={fieldControlClassName}
                 >
-                  <option value="">Pilih fakultas</option>
+                  <option value="">Select faculty</option>
 
                   {facultyOptions.map((faculty) => (
                     <option key={faculty} value={faculty}>
@@ -194,7 +232,7 @@ export default function AddCertificate() {
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
-                  Program Studi
+                  Study Program
                 </label>
 
                 <select
@@ -209,8 +247,8 @@ export default function AddCertificate() {
                 >
                   <option value="">
                     {selectedFaculty
-                      ? "Pilih program studi"
-                      : "Pilih fakultas terlebih dahulu"}
+                      ? "Select study program"
+                      : "Select faculty first"}
                   </option>
 
                   {programOptions.map((program) => (
@@ -226,7 +264,7 @@ export default function AddCertificate() {
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
-                  Jenjang Pendidikan
+                  Education Level
                 </label>
 
                 <input
@@ -235,14 +273,14 @@ export default function AddCertificate() {
                   required
                   readOnly
                   value={selectedProgram?.educationLevel ?? ""}
-                  placeholder="Otomatis terisi"
+                  placeholder="Automatically filled"
                   className={`${fieldControlClassName} bg-slate-100 text-slate-700`}
                 />
               </div>
 
               <div>
                 <label className="text-sm font-semibold text-slate-700">
-                  Gelar / Degree Title
+                  Degree Title
                 </label>
 
                 <input
@@ -251,13 +289,13 @@ export default function AddCertificate() {
                   required
                   readOnly
                   value={selectedProgram?.degreeTitle ?? ""}
-                  placeholder="Otomatis terisi setelah program studi dipilih"
+                  placeholder="Automatically filled after study program is selected"
                   className={`${fieldControlClassName} bg-slate-100 text-slate-700`}
                 />
               </div>
 
               <Field
-                label="Tanggal Lulus"
+                label="Graduation Date"
                 name="graduationDate"
                 type="date"
                 value={graduationDate}
@@ -266,7 +304,7 @@ export default function AddCertificate() {
               />
 
               <Field
-                label="Tanggal Terbit"
+                label="Issue Date"
                 name="issuedAt"
                 type="date"
                 value={issuedAt}
@@ -277,18 +315,18 @@ export default function AddCertificate() {
 
               <div className="md:col-span-2">
                 <label className="text-sm font-semibold text-slate-700">
-                  File Ijazah
+                  Certificate File
                 </label>
 
                 <label className="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
                   <UploadSimple className="h-8 w-8 text-blue-700" />
 
                   <span className="mt-3 text-sm font-bold text-slate-900">
-                    Upload file ijazah
+                    Upload certificate file
                   </span>
 
                   <span className="mt-1 text-xs text-slate-500">
-                    Format PDF.
+                    PDF Format.
                   </span>
 
                   {fileName && (
@@ -298,6 +336,7 @@ export default function AddCertificate() {
                   )}
 
                   <input
+                    ref={fileInputRef}
                     name="certificateFile"
                     type="file"
                     accept="application/pdf"
@@ -306,6 +345,12 @@ export default function AddCertificate() {
                     className="sr-only"
                   />
                 </label>
+
+                {fileError && (
+                  <p className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                    {fileError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -316,7 +361,7 @@ export default function AddCertificate() {
                   isSubmitting ? "pointer-events-none opacity-60" : ""
                 }`}
               >
-                Batal
+                Cancel
               </Link>
 
               <button
@@ -326,7 +371,7 @@ export default function AddCertificate() {
               >
                 <>
                   <FloppyDisk className="h-4 w-4" />
-                  Simpan & Generate QR
+                  Save & Generate QR
                 </>
               </button>
             </div>
@@ -339,13 +384,13 @@ export default function AddCertificate() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-6">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <h2 className="text-xl font-bold text-slate-950">
-              Konfirmasi Data Ijazah
+              Confirm Certificate Data
             </h2>
 
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Apakah yakin data sudah sesuai? Pastikan nama mahasiswa, NIM,
-              nomor ijazah, program studi, gelar, tanggal terbit, dan file
-              ijazah sudah benar sebelum data diproses.
+              Are you sure the data is correct? Make sure the student name, student ID, 
+              certificate number, study program, degree, issue date, and certificate file 
+              are correct before processing the data.
             </p>
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -354,7 +399,7 @@ export default function AddCertificate() {
                 onClick={handleCancelSubmit}
                 className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
               >
-                Tidak
+                No
               </button>
 
               <button
@@ -362,7 +407,7 @@ export default function AddCertificate() {
                 onClick={handleConfirmSubmit}
                 className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-600"
               >
-                Ya, Submit Data
+                Yes, Submit Data
               </button>
             </div>
           </div>
@@ -375,13 +420,25 @@ export default function AddCertificate() {
             <span className="h-8 w-8 animate-spin rounded-full border-4 border-blue-100 border-t-blue-700" />
 
             <p className="mt-4 text-sm font-bold text-slate-900">
-              Memproses data ijazah...
+              Processing certificate data...
             </p>
           </div>
         </div>
       )}
     </AdminShell>
   )
+}
+
+function getCertificateFileError(file: File) {
+  if (file.type !== ALLOWED_MIME_TYPE) {
+    return "Certificate file must be in PDF format."
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    return "Maximum certificate file size is 10MB."
+  }
+
+  return ""
 }
 
 function Field({

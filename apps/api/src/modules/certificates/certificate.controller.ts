@@ -126,14 +126,14 @@ export async function getAllCertificates(req: Request, res: Response): Promise<v
     ? await certificateService.getCertificatesByIssuer(issuerId)
     : await certificateService.getAllCertificates();
 
-  res.json({ success: true, data: result });
+  res.json({ success: true, data: result ?? [] });
 }
 
 export async function getCertificatesByIssuer(req: Request, res: Response): Promise<void> {
   const issuerId = parseIssuerIdParams(req.params);
   const result = await certificateService.getCertificatesByIssuer(issuerId);
 
-  res.json({ success: true, data: result });
+  res.json({ success: true, data: result ?? [] });
 }
 
 

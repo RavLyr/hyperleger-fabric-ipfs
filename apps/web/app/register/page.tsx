@@ -14,35 +14,35 @@ export default function RegisterPage() {
             </p>
 
             <h1 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
-              Daftarkan Institusi Penerbit Ijazah
+              Register Certificate Issuer Institution
             </h1>
 
             <p className="mt-4 text-sm leading-6 text-slate-300">
-              Registrasi ini digunakan untuk mendaftarkan institusi penerbit
-              ijazah ke sistem verifikasi berbasis Hyperledger Fabric.
+              This registration is used to register a certificate issuer institution
+              into the Hyperledger Fabric-based verification system.
             </p>
 
             <div className="mt-8 rounded-xl border border-white/10 bg-white/5 p-5 text-sm text-slate-300">
-              <p className="font-semibold text-white">Data yang dibutuhkan:</p>
+              <p className="font-semibold text-white">Required data:</p>
 
               <ul className="mt-3 list-disc space-y-2 pl-5">
-                <li>Issuer ID unik</li>
-                <li>Nama organisasi atau universitas</li>
-                <li>Departemen atau fakultas</li>
-                <li>MSP ID organisasi Fabric</li>
+                <li>Unique Issuer ID</li>
+                <li>Organization or university name</li>
+                <li>Department or faculty</li>
+                <li>Fabric organization MSP ID</li>
               </ul>
             </div>
 
             <div className="mt-6 rounded-xl border border-blue-300/20 bg-blue-300/10 p-5 text-sm leading-6 text-blue-100">
-              Data issuer yang berhasil didaftarkan akan digunakan saat proses
-              penerbitan ijazah digital dan pencatatan metadata sertifikat ke
+              Successfully registered issuer data will be used during the process of
+              issuing digital certificates and recording certificate metadata to the
               ledger.
             </div>
 
             <p className="mt-8 text-sm text-slate-300">
-              Sudah punya akun?{" "}
+              Already have an account?{" "}
               <Link href="/login" className="font-bold text-blue-300">
-                Login di sini
+                Login here
               </Link>
             </p>
           </section>

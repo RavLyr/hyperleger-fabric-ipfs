@@ -27,9 +27,21 @@ export async function uploadToIPFS(
 export function getIPFSGatewayUrl(cid: string): string {
   return `${env.IPFS_GATEWAY_URL}/ipfs/${cid}`;
 }
+function getIPFSAvailabilityUrl(cid: string): string {
+  const gatewayUrl = new URL(getIPFSGatewayUrl(cid));
+  const apiUrl = new URL(env.IPFS_API_URL);
+
+  if ((gatewayUrl.hostname === "localhost" || gatewayUrl.hostname === "127.0.0.1") && apiUrl.hostname === "ipfs") {
+    return `http://ipfs:8080/ipfs/${cid}`;
+  }
+
+  return gatewayUrl.toString();
+}
+
 export async function cidExists(cid: string): Promise<boolean> {
   try {
-    const response = await axios.head(getIPFSGatewayUrl(cid), {
+    const response = await axios.head(getIPFSAvailabilityUrl(cid), {
+      timeout: 3000,
       validateStatus: (status) => status >= 200 && status < 300,
     });
 

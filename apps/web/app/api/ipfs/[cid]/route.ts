@@ -13,7 +13,7 @@ function getIpfsGatewayUrl() {
   const gatewayUrl = process.env.IPFS_GATEWAY_URL
 
   if (!gatewayUrl) {
-    throw new Error("IPFS_GATEWAY_URL belum diset.")
+    throw new Error("IPFS_GATEWAY_URL is not set.")
   }
 
   return gatewayUrl.replace(/\/$/, "")
@@ -32,7 +32,7 @@ export async function GET(_request: NextRequest, { params }: IpfsRouteProps) {
       return NextResponse.json(
         {
           success: false,
-          message: "CID tidak valid.",
+          message: "Invalid CID.",
         },
         { status: 400 }
       )
@@ -49,7 +49,7 @@ export async function GET(_request: NextRequest, { params }: IpfsRouteProps) {
       return NextResponse.json(
         {
           success: false,
-          message: "Dokumen IPFS tidak dapat diakses.",
+          message: "IPFS document cannot be accessed.",
           gatewayStatus: response.status,
         },
         { status: response.status || 502 }
@@ -65,7 +65,7 @@ export async function GET(_request: NextRequest, { params }: IpfsRouteProps) {
 
     headers.set(
       "Content-Disposition",
-      `inline; filename="ijazah-${decodedCid}.pdf"`
+      `inline; filename="certificate-${decodedCid}.pdf"`
     )
 
     headers.set("Cache-Control", "no-store")
@@ -89,7 +89,7 @@ export async function GET(_request: NextRequest, { params }: IpfsRouteProps) {
         message:
           error instanceof Error
             ? error.message
-            : "Gagal mengambil dokumen IPFS.",
+            : "Failed to fetch IPFS document.",
       },
       { status: 500 }
     )

@@ -6,7 +6,7 @@ export default function VerificationPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center text-sm font-semibold text-slate-600">
-          Memuat halaman verifikasi...
+          Loading verification page...
         </div>
       }
     >

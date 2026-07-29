@@ -21,10 +21,12 @@ export class FabricGatewayClient {
   public constructor(private readonly config: FabricConfig) {}
 
   public async evaluateTransaction(functionName: string, args: readonly string[] = []): Promise<FabricResult> {
-    const contract = await this.getContract();
-    const result = await contract.evaluateTransaction(functionName, ...args);
+    return decodeFabricResult(await this.evaluateTransactionRaw(functionName, args));
+  }
 
-    return decodeFabricResult(result);
+  public async evaluateTransactionRaw(functionName: string, args: readonly string[] = []): Promise<Uint8Array> {
+    const contract = await this.getContract();
+    return contract.evaluateTransaction(functionName, ...args);
   }
 
   public async submitTransaction(functionName: string, args: readonly string[] = []): Promise<FabricResult> {

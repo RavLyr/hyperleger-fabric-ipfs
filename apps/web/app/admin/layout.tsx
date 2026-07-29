@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { BulkUploadProvider } from "@/components/providers/bulk-upload-provider"
 
 export const metadata: Metadata = {
   title: "Dashboard Admin",
@@ -9,5 +10,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <BulkUploadProvider>
+      {children}
+    </BulkUploadProvider>
+  )
 }

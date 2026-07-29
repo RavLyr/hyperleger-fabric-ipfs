@@ -43,7 +43,6 @@ const REQUIRED_UPLOAD_FIELDS = [
   'certificateNumber',
   'issuerId',
   'organizationName',
-  'departmentName',
   'mspId',
   'certificateType',
   'degreeTitle',
@@ -232,7 +231,11 @@ const uploadDependencies: UploadCertificateDependencies = {
   createGateway: fabricGatewayForMsp
 };
 
+import { createProcessCertificateIssuance } from './issuance-core.service';
+
 export function createUploadCertificateService(dependencies: UploadCertificateDependencies = uploadDependencies) {
+  const processIssuance = createProcessCertificateIssuance(dependencies);
+
   return async function uploadCertificateWithDependencies(
     body: RawBody,
     file: Express.Multer.File | undefined,
@@ -249,46 +252,14 @@ export function createUploadCertificateService(dependencies: UploadCertificateDe
       departmentName: authenticatedIssuer.departmentName,
       mspId: authenticatedIssuer.mspId
     });
-    const existingCertificate = await dependencies.findCertificateByCertificateNumber(input.certificateNumber);
 
-    if (existingCertificate) {
-      throw new Error(`certificateNumber already exists: ${input.certificateNumber}`);
-    }
-
-    const gateway = dependencies.createGateway(authenticatedIssuer.mspId);
-    const service = createCertificateService(gateway);
-    const ipfsCid = await dependencies.uploadToIPFS(file.buffer, file.originalname);
-    const issuerExists = await service.issuerExists(input.issuerId);
-
-    if (!isTrueFabricResult(issuerExists)) {
-      await service.registerIssuer({
-        issuerId: input.issuerId,
-        organizationName: input.organizationName,
-        departmentName: input.departmentName,
-        mspId: input.mspId,
-      });
-    }
-
-    const fabricTransaction = await service.issueCertificateWithTxId({
-      certificateId: input.certificateId,
-      certificateNumber: input.certificateNumber,
-      studentIdHash: sha256Hex(input.studentId),
-      issuerId: input.issuerId,
-      certificateType: input.certificateType,
-      title: input.degreeTitle,
-      ipfsCid,
-      issuedAt: input.issuedAt,
-      expiredAt: ''
-    });
-
-    return dependencies.insertCertificate({
-      ...input,
-      ipfsCid,
-      file_name: file.originalname,
-      mime_type: file.mimetype,
-      file_size: file.size,
-      ledger_tx_id: fabricTransaction.transactionId,
-      status: 'VALID',
+    return processIssuance({
+      certificateTextInput: input,
+      pdfBuffer: file.buffer,
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      fileSize: file.size,
+      authenticatedIssuer,
     });
   };
 }
@@ -557,7 +528,7 @@ function validateCertificateBody(body: RawBody): CertificateTextInput {
     certificateNumber: clean(body.certificateNumber),
     issuerId: clean(body.issuerId),
     organizationName: clean(body.organizationName),
-    departmentName: clean(body.departmentName),
+    departmentName: clean(body.departmentName) || 'Pusat',
     mspId: clean(body.mspId),
     certificateType: clean(body.certificateType),
     degreeTitle: clean(body.degreeTitle),

@@ -135,48 +135,48 @@ export default async function PublicQrCertificatePage({
         </section>
 
         <p className="mb-6 text-sm leading-relaxed text-slate-600">
-          Penetapan dokumen tersebut melalui beberapa proses, detail dokumen
-          antara lain sebagai berikut:
+          The document was processed through several steps, the document details
+          are as follows:
         </p>
 
         <section className="overflow-hidden border border-slate-200">
           <DataRow
-            label="Status Verifikasi"
+            label="Verification Status"
             value={isVerified ? "VALID" : getDisplayStatus(finalStatus)}
           />
 
           <DataRow
-            label="No Ijazah Nasional"
+            label="Certificate Number"
             value={certificate.certificateNumber}
           />
 
-          <DataRow label="Nama" value={certificate.studentName} />
+          <DataRow label="Name" value={certificate.studentName} />
 
-          <DataRow label="NIM" value={certificate.studentId} />
+          <DataRow label="Student ID" value={certificate.studentId} />
 
           <DataRow
-            label="Tanggal Lulus"
+            label="Graduation Date"
             value={formatOnlyDate(certificate.graduationDate)}
           />
 
-          <DataRow label="Fakultas" value={certificate.faculty ?? "-"} />
+          <DataRow label="Faculty" value={certificate.faculty ?? "-"} />
 
-          <DataRow label="Prodi" value={certificate.studyProgram} />
+          <DataRow label="Study Program" value={certificate.studyProgram} />
 
           <DataRow
-            label="Jenis Ijazah"
-            value={certificate.certificateType || "Ijazah"}
+            label="Certificate Type"
+            value={certificate.certificateType || "Certificate"}
           />
 
           <DataRow label="Program" value={certificate.educationLevel} />
 
           <DataRow
-            label="Gelar"
+            label="Degree"
             value={certificate.degreeTitle ?? certificate.title}
           />
 
           <DataRow
-            label="Tanggal Terbit"
+            label="Issue Date"
             value={formatOnlyDate(certificate.issuedAt)}
           />
 
@@ -196,14 +196,13 @@ export default async function PublicQrCertificatePage({
               rel="noreferrer"
               className="inline-flex rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-600"
             >
-              Buka Dokumen Asli
+              Open Original Document
             </a>
           </div>
         ) : null}
 
         <p className="mt-8 text-sm leading-relaxed text-slate-600">
-          Dengan ini menjadikan dokumen tersebut sah dan dapat dipergunakan
-          sebagaimana mestinya.
+          This makes the document valid and it can be used accordingly.
         </p>
 
         <p className="mt-8 text-xs italic text-slate-500">

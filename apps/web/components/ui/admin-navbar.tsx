@@ -6,7 +6,7 @@ import { Certificate } from "@phosphor-icons/react"
 
 const adminNavItems = [
   {
-    label: "Data Ijazah",
+    label: "Certificates Data",
     href: "/admin/ijazah",
   }
 ]

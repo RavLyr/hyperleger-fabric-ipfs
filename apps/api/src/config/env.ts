@@ -23,6 +23,16 @@ export type Env = {
   readonly IPFS_GATEWAY_URL: string;
   readonly PUBLIC_API_URL: string;
   readonly JWT_SECRET: string;
+  readonly REDIS_HOST: string;
+  readonly REDIS_PORT: number;
+  readonly REDIS_PASSWORD?: string;
+  readonly S3_ENDPOINT: string;
+  readonly S3_PORT?: number;
+  readonly S3_USE_SSL: boolean;
+  readonly S3_ACCESS_KEY: string;
+  readonly S3_SECRET_KEY: string;
+  readonly S3_BUCKET_NAME: string;
+  readonly S3_REGION: string;
 };
 
 function readString(name: keyof Omit<Env, 'PORT'>): string {
@@ -96,4 +106,14 @@ export const env: Env = {
   IPFS_GATEWAY_URL: readPublicUrl("IPFS_GATEWAY_URL", "http://127.0.0.1:8081"),
   PUBLIC_API_URL: readPublicUrl("PUBLIC_API_URL", "http://localhost:3000"),
   JWT_SECRET: readJwtSecret(),
+  REDIS_HOST: process.env.REDIS_HOST || "localhost",
+  REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
+  S3_ENDPOINT: process.env.S3_ENDPOINT || "http://127.0.0.1:9000",
+  S3_PORT: process.env.S3_PORT ? Number(process.env.S3_PORT) : 9000,
+  S3_USE_SSL: process.env.S3_USE_SSL === "true",
+  S3_ACCESS_KEY: process.env.S3_ACCESS_KEY || "minioadmin",
+  S3_SECRET_KEY: process.env.S3_SECRET_KEY || "minioadmin",
+  S3_BUCKET_NAME: process.env.S3_BUCKET_NAME || "ijazah-staging",
+  S3_REGION: process.env.S3_REGION || "us-east-1",
 };

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "File ijazah PDF wajib diunggah.",
+          message: "A PDF certificate file is required.",
         },
         { status: 400 }
       )
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message:
-            "Data upload ijazah belum lengkap. Field wajib: file, certificateNumber, issuerId, organizationName, departmentName, mspId, certificateType, degreeTitle, studentId, studentName, faculty, studyProgram, educationLevel, issuedAt.",
+            "Certificate upload data is incomplete. Required fields: file, certificateNumber, issuerId, organizationName, departmentName, mspId, certificateType, degreeTitle, studentId, studentName, faculty, studyProgram, educationLevel, issuedAt.",
         },
         { status: 400 }
       )
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Ijazah berhasil diunggah.",
+      message: "Certificate successfully uploaded.",
       data: uploaded,
     })
   } catch (error) {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
         message:
           error instanceof Error
             ? error.message
-            : "Gagal mengunggah ijazah.",
+            : "Failed to upload certificate.",
       },
       { status: 500 }
     )

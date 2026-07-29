@@ -3,6 +3,7 @@ import AdminShell from "@/components/ui/admin-shell"
 import Footer from "@/components/ui/footer"
 import { FileText, Plus, SealCheck, WarningCircle } from "@phosphor-icons/react/dist/ssr"
 import AdminDashboardTable from "./dashboard-table"
+import AddCertificateMenu from "@/components/ui/add-certificate-menu"
 import { getIssuerScope, requireAdminSession } from "@/lib/auth/session"
 import {
   getDatabaseCertificates,
@@ -135,11 +136,11 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
         <section className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
-              Data Ijazah
+              Certificates Data
             </h1>
             <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-slate-500">
               <p>
-                Login sebagai: <span className="font-semibold text-slate-700">{issuerName}</span>
+                Login as: <span className="font-semibold text-slate-700">{issuerName}</span>
               </p>
               {session.issuerId && (
                 <>
@@ -152,20 +153,16 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
             </div>
           </div>
 
-          <Link
-            href="/admin/ijazah/add"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-          >
-            <Plus weight="bold" className="h-4 w-4" />
-            Tambah Ijazah
-          </Link>
+          <div className="flex shrink-0 items-center gap-3">
+            <AddCertificateMenu session={session} />
+          </div>
         </section>
 
         <section className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
             <div className="mb-4 flex items-start justify-between">
               <span className="text-sm font-medium text-slate-600">
-                Total Ijazah
+                Total Certificates
               </span>
               <FileText className="h-5 w-5 text-slate-400" />
             </div>

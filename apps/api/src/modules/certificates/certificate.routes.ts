@@ -8,8 +8,47 @@ import {
 } from "./certificate.controller";
 import { asyncHandler } from '../../utils/asyncHandler';
 import * as certificateController from './certificate.controller';
+import * as bulkJobController from './bulk-job.controller';
 
 export const certificateRoutes = Router();
+
+// Bulk upload jobs routes
+certificateRoutes.post(
+  '/bulk-jobs',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.createBulkJobController)
+);
+certificateRoutes.post(
+  '/bulk-jobs/:jobId/manifest',
+  requireIssuerAdmin(),
+  upload.single('manifest'),
+  asyncHandler(bulkJobController.uploadBulkManifestController)
+);
+certificateRoutes.post(
+  '/bulk-jobs/:jobId/upload-urls',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.requestUploadUrlsController)
+);
+certificateRoutes.post(
+  '/bulk-jobs/:jobId/complete-upload',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.completeBulkUploadController)
+);
+certificateRoutes.post(
+  '/bulk-jobs/:jobId/start',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.startBulkJobController)
+);
+certificateRoutes.get(
+  '/bulk-jobs/:jobId',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.getBulkJobStatusController)
+);
+certificateRoutes.get(
+  '/bulk-jobs/:jobId/items',
+  requireIssuerAdmin(),
+  asyncHandler(bulkJobController.getBulkJobItemsController)
+);
 
 certificateRoutes.post('/ledger/init', asyncHandler(certificateController.initLedger));
 

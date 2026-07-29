@@ -52,8 +52,8 @@ export async function createDiploma(formData: FormData) {
 
   const certificateNumber = String(
     formData.get("certificateNumber") ??
-      formData.get("diplomaNumber") ??
-      ""
+    formData.get("diplomaNumber") ??
+    ""
   ).trim()
 
   const certificateType =
@@ -92,37 +92,36 @@ export async function createDiploma(formData: FormData) {
     !issuedAtRaw
   ) {
     throw new Error(
-      "Nama mahasiswa, NIM, nomor ijazah, jenis ijazah, gelar, fakultas, program studi, jenjang pendidikan, dan tanggal terbit wajib diisi."
+      "Student name, student ID, certificate number, certificate type, degree, faculty, study program, education level, and issue date are required."
     )
   }
 
   if (graduationDateRaw && !graduationDate) {
-    throw new Error("Tanggal lulus tidak valid.")
+    throw new Error("Invalid graduation date.")
   }
 
   if (!issuedAt) {
-    throw new Error("Tanggal terbit tidak valid.")
+    throw new Error("Invalid issue date.")
   }
 
   if (expiredAtRaw && !expiredAt) {
-    throw new Error("Tanggal kedaluwarsa tidak valid.")
+    throw new Error("Invalid expiration date.")
   }
 
   if (!isValidUploadedFile(certificateFile)) {
-    throw new Error("File ijazah wajib diunggah.")
+    throw new Error("Certificate file is required.")
   }
 
   if (session.role === "ISSUER_ADMIN" && !issuerScope) {
-    throw new Error("Issuer tidak ditemukan dari session login.")
+    throw new Error("Issuer not found in login session.")
   }
 
   if (
     !session.issuerId ||
     !session.organizationName ||
-    !session.departmentName ||
     !session.mspId
   ) {
-    throw new Error("Data issuer pada session tidak lengkap. Silakan login ulang.")
+    throw new Error("Incomplete issuer data in session. Please login again.")
   }
 
   const existingCertificate = await findExistingCertificateByNumber(
@@ -144,33 +143,43 @@ export async function createDiploma(formData: FormData) {
     redirect("/admin/ijazah?duplicate=1")
   }
 
-  const uploadedCertificate = await uploadCertificate({
-    file: certificateFile,
+  let uploadedCertificate: Awaited<ReturnType<typeof uploadCertificate>>
 
-    certificateNumber,
+  try {
+    uploadedCertificate = await uploadCertificate({
+      file: certificateFile,
 
-    issuerId: session.issuerId,
-    organizationName: session.organizationName,
-    departmentName: session.departmentName,
-    mspId: session.mspId,
+      certificateNumber,
 
-    certificateType,
-    degreeTitle,
+      issuerId: session.issuerId,
+      organizationName: session.organizationName,
+      departmentName: session.departmentName,
+      mspId: session.mspId,
 
-    studentId,
-    studentName,
-    faculty,
-    studyProgram,
-    educationLevel,
+      certificateType,
+      degreeTitle,
 
-    issuedAt: issuedAtRaw,
-    graduationDate: graduationDateRaw || undefined,
-    expiredAt: expiredAtRaw || undefined,
-  })
+      studentId,
+      studentName,
+      faculty,
+      studyProgram,
+      educationLevel,
+
+      issuedAt: issuedAtRaw,
+      graduationDate: graduationDateRaw || undefined,
+      expiredAt: expiredAtRaw || undefined,
+    })
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to upload certificate. Please try again."
+    )
+  }
 
   if (!uploadedCertificate.certificateId) {
     throw new Error(
-      "Upload berhasil, tetapi backend tidak mengembalikan certificateId."
+      "Upload successful, but backend did not return a certificateId."
     )
   }
 
