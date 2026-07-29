@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Username/email/issuer ID dan password wajib diisi.",
+          message: "Username/email/issuer ID and password are required.",
         },
         { status: 400 }
       )
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Login berhasil, tetapi token atau data issuer tidak lengkap.",
+          message: "Login successful, but token or issuer data is incomplete.",
         },
         { status: 500 }
       )
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      message: "Login berhasil.",
+      message: "Login successful.",
       issuer,
     })
     const isHttps = isAuthCookieSecure()
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : "Login gagal.",
+        message: error instanceof Error ? error.message : "Login failed.",
       },
       { status: 500 }
     )

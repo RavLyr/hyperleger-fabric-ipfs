@@ -50,7 +50,7 @@ export default function AddCertificateMenu({ session }: AddCertificateMenuProps)
           className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
         >
           <Plus weight="bold" className="h-4 w-4" />
-          Tambah Ijazah
+          Add Certificate
         </button>
 
         {isOpen && (
@@ -64,7 +64,7 @@ export default function AddCertificateMenu({ session }: AddCertificateMenuProps)
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-600 transition group-hover:bg-white group-hover:text-slate-900 group-hover:shadow-sm border border-transparent group-hover:border-slate-200">
                   <Plus weight="bold" className="h-4 w-4" />
                 </div>
-                Tambah 1 per 1
+                Add Individual
               </Link>
               
               <button
@@ -78,7 +78,7 @@ export default function AddCertificateMenu({ session }: AddCertificateMenuProps)
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-600 transition group-hover:bg-white group-hover:text-blue-700 group-hover:shadow-sm border border-transparent group-hover:border-slate-200">
                   <FileText weight="bold" className="h-4 w-4" />
                 </div>
-                Upload Ijazah Massal
+                Bulk Upload Certificates
               </button>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function AddCertificateMenu({ session }: AddCertificateMenuProps)
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm bg-slate-900/60 animate-in fade-in duration-200">
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
-              <h2 className="text-lg font-bold text-slate-900">Upload Ijazah Massal (Bulk Upload)</h2>
+              <h2 className="text-lg font-bold text-slate-900">Bulk Upload Certificates</h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}

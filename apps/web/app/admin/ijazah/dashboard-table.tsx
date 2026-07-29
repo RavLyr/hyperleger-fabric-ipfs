@@ -232,12 +232,12 @@ export default function AdminDashboardTable({
           <input
             value={qDraft}
             onChange={(event) => setQDraft(event.target.value)}
-            placeholder="Cari nama, nomor ijazah, prodi, atau tahun lulus..."
+            placeholder="Search name, certificate number, study program, or graduation year..."
             className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
 
           <button type="submit" className="sr-only">
-            Cari
+            Search
           </button>
         </div>
 
@@ -247,7 +247,7 @@ export default function AdminDashboardTable({
             onChange={handleStatusChange}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="ALL">Semua Status</option>
+            <option value="ALL">All Status</option>
             <option value="VALID">Valid</option>
             <option value="REVOKED">Revoke</option>
           </select>
@@ -269,7 +269,7 @@ export default function AdminDashboardTable({
       <div className="relative overflow-x-auto">
         {isPending ? (
           <div className="absolute inset-x-0 top-0 z-10 border-b border-blue-100 bg-blue-50 px-6 py-2 text-xs font-bold text-blue-700">
-            Memuat data...
+            Loading data...
           </div>
         ) : null}
 
@@ -280,19 +280,19 @@ export default function AdminDashboardTable({
                 Certificate Number
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Nama
+                Name
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Program Studi
+                Study Program
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                Fakultas
+                Faculty
               </th>
               <th className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
                 Status
               </th>
               <th className="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
-                Aksi
+                Action
               </th>
             </tr>
           </thead>
@@ -336,7 +336,7 @@ export default function AdminDashboardTable({
                       )}`}
                       className="font-semibold text-blue-700 transition hover:text-blue-600"
                     >
-                      Detail
+                      Details
                     </Link>
                   </td>
                 </tr>
@@ -348,8 +348,8 @@ export default function AdminDashboardTable({
                   className="px-6 py-12 text-center text-sm text-slate-500"
                 >
                   {q || status !== "ALL"
-                    ? "Data ijazah dengan filter tersebut tidak ditemukan."
-                    : "Belum ada data ijazah."}
+                    ? "Certificate data with the given filters not found."
+                    : "No certificate data available."}
                 </td>
               </tr>
             )}
@@ -359,8 +359,8 @@ export default function AdminDashboardTable({
 
       <div className="flex flex-col gap-4 border-t border-slate-200 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
         <span className="text-sm text-slate-600">
-          Menampilkan {formatNumber(startItem)}-{formatNumber(endItem)} dari{" "}
-          {formatNumber(totalFilteredDiplomas)} data
+          Showing {formatNumber(startItem)}-{formatNumber(endItem)} of{" "}
+          {formatNumber(totalFilteredDiplomas)} items
         </span>
 
         <div className="flex flex-wrap items-center gap-2">

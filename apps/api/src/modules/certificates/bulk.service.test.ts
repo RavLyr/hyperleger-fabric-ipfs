@@ -36,7 +36,7 @@ describe('bulk manifest validation', () => {
       'UNDIP-2026-000001.pdf',
     ]);
 
-    const buffer = await workbook.xlsx.writeBuffer() as Buffer;
+    const buffer = (await workbook.xlsx.writeBuffer()) as unknown as Buffer;
     const result = await parseAndValidateManifestExcel(buffer);
 
     assert.equal(result.totalRows, 1);
@@ -78,7 +78,7 @@ describe('bulk manifest validation', () => {
       '', // Missing pdf_file_name
     ]);
 
-    const buffer = await workbook.xlsx.writeBuffer() as Buffer;
+    const buffer = (await workbook.xlsx.writeBuffer()) as unknown as Buffer;
     const result = await parseAndValidateManifestExcel(buffer);
 
     assert.equal(result.totalRows, 1);

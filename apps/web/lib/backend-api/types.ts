@@ -109,7 +109,7 @@ export type UploadCertificateInput = {
   certificateNumber: string
   issuerId: string
   organizationName: string
-  departmentName: string
+  departmentName?: string
   mspId: string
   certificateType: string
   degreeTitle: string

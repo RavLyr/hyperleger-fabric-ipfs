@@ -110,7 +110,9 @@ export async function uploadCertificate(input: UploadCertificateInput) {
 
   formData.append("issuerId", input.issuerId)
   formData.append("organizationName", input.organizationName)
-  formData.append("departmentName", input.departmentName)
+  if (input.departmentName) {
+    formData.append("departmentName", input.departmentName)
+  }
   formData.append("mspId", input.mspId)
 
   formData.append("certificateType", input.certificateType)
@@ -145,15 +147,15 @@ export async function uploadCertificate(input: UploadCertificateInput) {
     }
 
     if (error.status === 413) {
-      throw new Error("Ukuran file ijazah maksimal 10MB.")
+      throw new Error("Certificate file size must be under 10MB.")
     }
 
     if (error.status === 415) {
-      throw new Error("File ijazah harus berformat PDF.")
+      throw new Error("Certificate file must be in PDF format.")
     }
 
     if (error.status === 500) {
-      throw new Error("Gagal mengunggah ijazah. Silakan coba lagi.")
+      throw new Error("Failed to upload certificate. Please try again.")
     }
 
     throw new Error(formatUploadErrorMessage(error.message))
@@ -164,11 +166,11 @@ export async function uploadCertificate(input: UploadCertificateInput) {
 
 function formatUploadErrorMessage(message: string) {
   if (message === "Only PDF files are allowed") {
-    return "File ijazah harus berformat PDF."
+    return "Certificate file must be in PDF format."
   }
 
   if (message === "File too large") {
-    return "Ukuran file ijazah maksimal 10MB."
+    return "Certificate file size must be under 10MB."
   }
 
   return message

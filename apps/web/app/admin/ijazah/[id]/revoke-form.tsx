@@ -58,7 +58,7 @@ export default function RevokeDiplomaForm({
             htmlFor="reason"
             className="text-sm font-semibold text-slate-700"
           >
-            Alasan Pencabutan
+            Revocation Reason
           </label>
 
           <textarea
@@ -66,7 +66,7 @@ export default function RevokeDiplomaForm({
             name="reason"
             required
             rows={4}
-            placeholder="Contoh: Data ijazah salah dan perlu dicabut."
+            placeholder="Example: Certificate data is incorrect and needs to be revoked."
             className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-100"
           />
         </div>
@@ -79,10 +79,10 @@ export default function RevokeDiplomaForm({
           {isSubmitting ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              Memproses Revoke...
+              Processing Revocation...
             </>
           ) : (
-            "Revoke Ijazah"
+            "Revoke Certificate"
           )}
         </button>
       </form>
@@ -91,11 +91,11 @@ export default function RevokeDiplomaForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-6">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <h2 className="text-xl font-bold text-slate-950">
-              Konfirmasi Revoke Ijazah
+              Confirm Certificate Revocation
             </h2>
 
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Apakah kamu yakin ingin mencabut ijazah ini?
+              Are you sure you want to revoke this certificate?
             </p>
 
             {/* <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
@@ -106,14 +106,14 @@ export default function RevokeDiplomaForm({
 
             <div className="mt-4">
               <p className="mb-2 text-sm font-medium text-slate-700">
-                Ketik <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-red-700">Revoke this certificate</code> untuk mengkonfirmasi
+                Type <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-red-700">Revoke this certificate</code> to confirm
               </p>
               <input
                 type="text"
                 value={confirmationText}
                 onChange={(e) => setConfirmationText(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-100"
-                placeholder="Ketik konfirmasi..."
+                placeholder="Type confirmation..."
               />
             </div>
 
@@ -123,7 +123,7 @@ export default function RevokeDiplomaForm({
                 onClick={handleCancelRevoke}
                 className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
               >
-                Tidak
+                No
               </button>
 
               <button
@@ -132,7 +132,7 @@ export default function RevokeDiplomaForm({
                 disabled={!isConfirmationValid}
                 className="rounded-lg bg-red-700 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Ya, Revoke Ijazah
+                Yes, Revoke Certificate
               </button>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function RevokeDiplomaForm({
             <span className="h-8 w-8 animate-spin rounded-full border-4 border-red-100 border-t-red-700" />
 
             <p className="mt-4 text-sm font-bold text-slate-900">
-              Memproses revoke ijazah...
+              Processing certificate revocation...
             </p>
           </div>
         </div>

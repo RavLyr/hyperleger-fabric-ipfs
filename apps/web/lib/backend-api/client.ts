@@ -77,7 +77,7 @@ export async function backendFetch<T = BackendErrorResponse>(
     throw new BackendApiError(
       errorResult?.error?.message ||
         errorResult?.message ||
-        "Request ke backend gagal.",
+        "Backend request failed.",
       response.status
     )
   }

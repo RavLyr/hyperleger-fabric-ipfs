@@ -6,7 +6,7 @@ function getBackendBaseUrl() {
   const baseUrl = process.env.BACKEND_BASE_URL
 
   if (!baseUrl) {
-    throw new Error("BACKEND_BASE_URL belum diset.")
+    throw new Error("BACKEND_BASE_URL is not set.")
   }
 
   return baseUrl.replace(/\/$/, "")
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         message:
           error instanceof Error
             ? error.message
-            : "Terjadi kesalahan saat registrasi issuer.",
+            : "An error occurred during issuer registration.",
       },
       { status: 500 }
     )

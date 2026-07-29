@@ -3,8 +3,8 @@ import type { FabricResult } from '../../infrastructure/fabric/fabric-result';
 export type FabricTransactionMode = 'evaluate' | 'submit';
 
 export type FabricHealth = {
-  readonly status: 'connected' | 'degraded';
-  readonly itemCount: number | null;
+  readonly status: 'healthy' | 'connected' | 'degraded';
+  readonly itemCount: number;
 };
 
 export type FabricInvokeResult = {

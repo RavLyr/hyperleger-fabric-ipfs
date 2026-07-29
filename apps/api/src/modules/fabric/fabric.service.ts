@@ -1,6 +1,6 @@
 import { fabricConfig, getFabricConfig } from '../../config/fabric.config';
 import { FabricGatewayClient, type FabricSubmitResult } from '../../infrastructure/fabric/fabric-gateway.client';
-import type { FabricResult } from '../../infrastructure/fabric/fabric-result';
+import { decodeFabricResult, type FabricResult } from '../../infrastructure/fabric/fabric-result';
 import type { InvokeFabricBody } from './fabric.dto';
 import type { FabricHealth, FabricInvokeResult } from './fabric.types';
 
@@ -33,12 +33,20 @@ export function fabricGatewayForMsp(mspId: string) {
 }
 
 export async function getFabricHealth(): Promise<FabricHealth> {
-  const demoIssuerExists = await evaluateTransaction('SmartContract:IssuerExists', 'DEMO_ISSUER');
+  const raw = await getFabricClient().evaluateTransactionRaw('SmartContract:GetAllCertificates');
+  const rawText = Buffer.from(raw).toString('utf8');
+  console.info('Fabric health raw result:', rawText);
+  const decoded = decodeFabricResult(raw);
 
-  return {
-    status: demoIssuerExists === true || demoIssuerExists === 'true' ? 'connected' : 'degraded',
-    itemCount: null
-  };
+  if (decoded === null) {
+    return { status: 'healthy', itemCount: 0 };
+  }
+
+  if (!Array.isArray(decoded)) {
+    throw new Error('SmartContract:GetAllCertificates returned a non-array result');
+  }
+
+  return { status: 'healthy', itemCount: decoded.length };
 }
 
 export async function invokeFabric(input: InvokeFabricBody): Promise<FabricInvokeResult> {

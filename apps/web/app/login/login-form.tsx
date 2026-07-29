@@ -63,13 +63,13 @@ export default function LoginForm() {
       const result = (await response.json()) as LoginResponse
 
       if (!response.ok || result.success === false) {
-        setMessage(result.message || "Login gagal.")
+        setMessage(result.message || "Login failed.")
         return
       }
 
       window.location.replace(callbackUrl)
     } catch {
-      setMessage("Gagal menghubungi server.")
+      setMessage("Failed to contact server.")
     } finally {
       setIsLoading(false)
     }
@@ -99,7 +99,7 @@ export default function LoginForm() {
               required
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="Contoh: admin"
+              placeholder="Example: admin"
               autoComplete="username"
               className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
             />
@@ -121,7 +121,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Masukkan password"
+                  placeholder="Enter password"
                   autoComplete="current-password"
                   className="w-full rounded-lg border border-slate-300 px-4 py-2.5 pr-11 text-sm outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
                 />
@@ -130,7 +130,7 @@ export default function LoginForm() {
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-800"
-                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <EyeSlash className="h-5 w-5" />
@@ -153,16 +153,16 @@ export default function LoginForm() {
           disabled={isLoading}
           className="mt-6 w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoading ? "Memproses..." : "Login"}
+          {isLoading ? "Processing..." : "Login"}
         </button>
 
         {/* <p className="mt-6 text-center text-sm text-slate-600">
-          Belum punya akun issuer?{" "}
+          Don't have an issuer account?{" "}
           <Link
             href="/register"
             className="font-bold text-blue-700 hover:text-blue-600"
           >
-            Registrasi Issuer
+            Register Issuer
           </Link>
         </p> */}
       </form>

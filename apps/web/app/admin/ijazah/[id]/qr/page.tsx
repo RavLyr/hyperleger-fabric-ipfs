@@ -230,7 +230,7 @@ export default async function PreviewDiplomaPage({
               </h1>
 
               <p className="text-sm text-slate-600">
-                QR code verifikasi ijazah berhasil dibuat.
+                Certificate verification QR code successfully created.
               </p>
             </div>
 
@@ -254,7 +254,7 @@ export default async function PreviewDiplomaPage({
                 <div className="w-full flex-grow space-y-4">
                   <div className="border-b border-slate-200 pb-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Nama Mahasiswa
+                      Student Name
                     </span>
 
                     <p className="mt-1 text-xl font-bold text-slate-950">
@@ -263,33 +263,33 @@ export default async function PreviewDiplomaPage({
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <MetadataItem label="NIM" value={studentId} />
+                    <MetadataItem label="Student ID" value={studentId} />
 
                     <MetadataItem
-                      label="Nomor Ijazah"
+                      label="Certificate Number"
                       value={certificateNumber}
                       mono
                     />
 
                     <MetadataItem
-                      label="Fakultas"
+                      label="Faculty"
                       value={faculty}
                     />
 
                     <MetadataItem
-                      label="Program Studi"
+                      label="Study Program"
                       value={studyProgram}
                     />
 
                     <MetadataItem
-                      label="Jenjang Pendidikan"
+                      label="Education Level"
                       value={educationLevel}
                     />
 
-                    <MetadataItem label="Gelar" value={certificateTitle} />
+                    <MetadataItem label="Degree" value={certificateTitle} />
 
                     <MetadataItem
-                      label="Tanggal Lulus"
+                      label="Graduation Date"
                       value={formatOnlyDate(graduationDate)}
                     />
 
@@ -313,7 +313,7 @@ export default async function PreviewDiplomaPage({
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-8 py-4 text-sm font-bold text-white transition hover:bg-blue-600 hover:shadow-lg active:scale-95"
               >
                 <DownloadSimple className="h-5 w-5" />
-                Unduh QR Code
+                Download QR Code
               </a>
 
               <Link
@@ -321,7 +321,7 @@ export default async function PreviewDiplomaPage({
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50 active:scale-95"
               >
                 <QrCode className="h-5 w-5" />
-                Kembali ke Dashboard
+                Back to Dashboard
               </Link>
 
               <Link
@@ -331,7 +331,7 @@ export default async function PreviewDiplomaPage({
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50 active:scale-95"
               >
                 <ArrowSquareOut className="h-5 w-5" />
-                Lihat Detail
+                View Details
               </Link>
 
               {documentUrl && (
@@ -342,7 +342,7 @@ export default async function PreviewDiplomaPage({
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 transition hover:bg-slate-50 active:scale-95"
                 >
                   <ArrowSquareOut className="h-5 w-5" />
-                  Buka PDF
+                  Open PDF
                 </a>
               )}
             </div>

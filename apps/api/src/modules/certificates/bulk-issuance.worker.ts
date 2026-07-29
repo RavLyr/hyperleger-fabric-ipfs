@@ -161,6 +161,9 @@ export function startBulkIssuanceWorker(): Worker<BulkIssuanceJobData> {
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
 
+        // Deterministic errors shouldn't be retried
+        const isDeterministic = errorMsg.includes('already exists') || errorMsg.includes('has no staged object') || errorMsg.includes('Item ITEM-');
+
         await prisma.bulkUploadItem.update({
           where: { itemId },
           data: {
@@ -170,12 +173,34 @@ export function startBulkIssuanceWorker(): Worker<BulkIssuanceJobData> {
           },
         });
 
-        await prisma.bulkUploadJob.update({
-          where: { jobId: item.jobId },
-          data: {
-            failedItems: { increment: 1 },
-          },
-        });
+        const maxAttempts = job.opts.attempts || 5;
+        const attemptsMade = job.attemptsMade + 1;
+
+        if (isDeterministic || attemptsMade >= maxAttempts) {
+          await prisma.bulkUploadJob.update({
+            where: { jobId: item.jobId },
+            data: {
+              failedItems: { increment: 1 },
+            },
+          });
+
+          // Check if job is finished
+          const updatedJob = await prisma.bulkUploadJob.findUnique({
+            where: { jobId: item.jobId },
+          });
+
+          if (updatedJob && updatedJob.processedItems + updatedJob.failedItems >= updatedJob.totalItems) {
+            const finalStatus = updatedJob.failedItems > 0 ? 'COMPLETED_WITH_ERRORS' : 'COMPLETED';
+            await prisma.bulkUploadJob.update({
+              where: { jobId: item.jobId },
+              data: { status: finalStatus },
+            });
+          }
+
+          if (isDeterministic) {
+            return; // Tell BullMQ we are done so it stops retrying
+          }
+        }
 
         throw err; // Allow BullMQ to retry if attempts remain
       }

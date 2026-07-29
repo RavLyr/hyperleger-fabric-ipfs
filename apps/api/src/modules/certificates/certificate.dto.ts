@@ -99,7 +99,7 @@ export function parseRegisterIssuerBody(body: unknown): RegisterIssuerInput {
   return {
     issuerId: readRequiredString(body, 'issuerId'),
     organizationName: readRequiredString(body, 'organizationName'),
-    departmentName: readRequiredString(body, 'departmentName'),
+    departmentName: readNonEmptyString(body, 'departmentName') ?? '',
     mspId: readRequiredString(body, 'mspId')
   };
 }
@@ -238,7 +238,7 @@ export function parseRegisterBody(body: unknown): RegisterInput {
   return {
     issuerId: readRequiredString(body, 'issuerId'),
     organizationName: readRequiredString(body, 'organizationName'),
-    departmentName: readRequiredString(body, 'departmentName'),
+    departmentName: readNonEmptyString(body, 'departmentName') ?? '',
     mspId: readRequiredString(body, 'mspId'),
     username: readRequiredString(body, 'username'),
     email: readRequiredString(body, 'email'),

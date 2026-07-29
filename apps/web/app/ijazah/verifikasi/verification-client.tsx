@@ -250,12 +250,10 @@ function formatApiMessage(message?: string | null) {
   }
 
   if (normalizedMessage.includes("certificate is valid")) {
-    // return "Data ijazah valid dan telah diverifikasi."
     return "Certificate data is valid and has been verified."
   }
 
   if (normalizedMessage.includes("certificate has been revoked")) {
-    // return "Ijazah telah dicabut."
     return "Certificate has been revoked.";
   }
 
@@ -263,7 +261,6 @@ function formatApiMessage(message?: string | null) {
     normalizedMessage.includes("certificate not found") ||
     normalizedMessage.includes("not found in database or ledger")
   ) {
-    // return "Data ijazah tidak ditemukan."
     return "Certificate not found.";
   }
 
@@ -271,12 +268,10 @@ function formatApiMessage(message?: string | null) {
     normalizedMessage.includes("possible manipulation") ||
     normalizedMessage.includes("illegal data")
   ) {
-    // return "Terdapat indikasi manipulasi data."
     return "Data manipulation detected.";
   }
 
   if (normalizedMessage.includes("document file not found")) {
-    // return "File ijazah tidak ditemukan."
     return "Document file not found.";
   }
 
@@ -300,7 +295,6 @@ function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
   const documentStatus = normalizeStatus(diploma.documentStatus)
   if (integrityStatus === "DB_LEDGER_MISMATCH") {
     return {
-      // title: "Indikasi Manipulasi Data",
       title: "Data Manipulation Indicated",
       variant: "red",
     }
@@ -308,7 +302,6 @@ function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
 
   if (integrityStatus === "LEDGER_RECOVERED") {
     return {
-      // title: "Data Disinkronkan Ulang",
       title: "Data Resynchronized",
       variant: "blue",
     }
@@ -316,7 +309,6 @@ function getIntegrityBanner(diploma?: Diploma | null): IntegrityBanner | null {
 
   if (documentStatus === "FILE_NOT_FOUND") {
     return {
-      // title: "File Ijazah Tidak Ditemukan",
       title: "Certificate File Not Found",
       variant: "yellow",
     }
@@ -389,7 +381,7 @@ function getSummaryStatus(diploma: Diploma) {
     return "ACTIVE"
   }
 
-  return diploma.ledgerData?.status || diploma.status || "Belum tersedia"
+  return diploma.ledgerData?.status || diploma.status || "Not available"
 }
 
 function getVerificationWatermark(diploma: Diploma) {
@@ -399,7 +391,6 @@ function getVerificationWatermark(diploma: Diploma) {
 
   if (isRevoked(diploma)) {
     return {
-      // label: "Ijazah Telah Dicabut",
       label: "Certificate Has Been Revoked",
       className: "border-red-200 bg-red-50 text-red-700",
     }
@@ -409,7 +400,6 @@ function getVerificationWatermark(diploma: Diploma) {
 
   if (diploma.valid === true || diploma.ledgerData?.valid === true || status === "VALID" || status === "ACTIVE") {
     return {
-      // label: "Terverifikasi",
       label: "Verified",
       className: "border-emerald-200 bg-emerald-50 text-emerald-700",
     }
@@ -469,7 +459,7 @@ function VerificationIntegrityBanner({
               className="inline-flex items-center gap-2 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
             >
               <ArrowSquareOut className="h-4 w-4" />
-              Lihat Ijazah
+              View Certificate
             </a>
           </BannerAction>
         )}
@@ -501,7 +491,6 @@ function DetailItem({
         className={`text-sm font-medium text-slate-900 ${mono ? "break-all font-mono text-xs" : ""
           }`}
       >
-        {/* {value || "Belum tersedia"} */}
         {value || "Not available"}
       </span>
     </div>
@@ -590,7 +579,6 @@ export default function VerificationClient() {
     if (!finalQuery) {
       setHasSearched(false)
       setIsBannerVisible(false)
-      // setMessage("Masukkan nomor ijazah terlebih dahulu.")
       setMessage("Enter certificate number first")
       setDiploma(null)
       return
@@ -612,7 +600,6 @@ export default function VerificationClient() {
       if (!response.ok || result.success === false) {
         setMessage(
           formatApiMessage(result.message) ||
-          // "Terjadi kesalahan saat mencari data."
           "An error occurred while searching for the data."
         )
         setDiploma(null)
@@ -625,7 +612,6 @@ export default function VerificationClient() {
       if (!foundDiploma || result.found === false) {
         setMessage(
           formatApiMessage(result.message) ||
-          // "Data ijazah tidak ditemukan."
           "No certificate data found."
         )
         setDiploma(null)
@@ -645,7 +631,6 @@ export default function VerificationClient() {
       setMessage(formatApiMessage(result.message))
       setIsBannerVisible(true)
     } catch {
-      // setMessage("Gagal menghubungi server.")
       setMessage("Failed to connect to server.")
       setDiploma(null)
       setIsBannerVisible(false)
@@ -680,7 +665,6 @@ export default function VerificationClient() {
       setIsCameraActive(true)
       setMessage("")
     } catch {
-      // setMessage("Kamera gagal dibuka. Pastikan izin kamera sudah diberikan.")
       setMessage("Camera failed to open. Please ensure camera permission is granted.")
       setIsCameraActive(false)
     }
@@ -716,8 +700,6 @@ export default function VerificationClient() {
           </h1>
 
           <p className="max-w-2xl text-lg leading-relaxed text-slate-600">
-            {/* Masukkan nomor ijazah atau scan QR Code untuk mengecek keaslian data
-            ijazah. */}
             Enter the certificate number or scan the QR Code to check the authenticity of the certificate data.
           </p>
         </section>
@@ -734,8 +716,7 @@ export default function VerificationClient() {
                   }`}
               >
                 <MagnifyingGlass className="h-5 w-5" />
-                {/* Search Manual */}
-                
+                Manual Search
               </button>
 
               <button
@@ -775,7 +756,6 @@ export default function VerificationClient() {
                             void searchDiploma()
                           }
                         }}
-                        // placeholder="Contoh: IJZ-2026-001"
                         placeholder="Example: IJZ-2026-001"
                         className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-12 pr-12 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
                       />
@@ -807,7 +787,7 @@ export default function VerificationClient() {
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950">
                         <Scan className="h-14 w-14 animate-pulse text-white" />
                         <p className="text-sm font-medium text-white">
-                          {/* Kamera belum aktif */}
+                          {/* Camera not active yet */}
                           Camera is not active
                         </p>
                       </div>
@@ -899,12 +879,12 @@ export default function VerificationClient() {
                 </div>
 
                 <h3 className="mt-4 text-xl font-bold text-slate-900">
-                  {/* Data Tidak Ditemukan */}
+                  {/* Data Not Found */}
                   Data Not Found
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                  {/* Pastikan nomor ijazah yang dimasukkan sudah benar. */}
+                  {/* Ensure the entered certificate number is correct. */}
                   Ensure the certificate number entered is correct.
                 </p>
               </div>

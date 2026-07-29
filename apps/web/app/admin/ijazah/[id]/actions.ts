@@ -27,11 +27,11 @@ export async function revokeDiploma(
   const reason = String(formData.get("reason") ?? "").trim()
 
   if (!certificateId) {
-    throw new Error("Certificate ID tidak ditemukan.")
+    throw new Error("Certificate ID not found.")
   }
 
   if (!reason) {
-    throw new Error("Alasan pencabutan wajib diisi.")
+    throw new Error("Revocation reason is required.")
   }
 
   const certificate = await getLedgerCertificateDetail(certificateId).catch(

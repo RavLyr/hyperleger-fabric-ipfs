@@ -7,7 +7,7 @@ function getBackendBaseUrl() {
   const baseUrl = process.env.BACKEND_BASE_URL
 
   if (!baseUrl) {
-    throw new Error("BACKEND_BASE_URL belum diset.")
+    throw new Error("BACKEND_BASE_URL is not set.")
   }
 
   return baseUrl.replace(/\/$/, "")
@@ -26,8 +26,8 @@ export async function GET() {
       {
         success: response.ok,
         message: response.ok
-          ? "FE berhasil hit backend."
-          : "FE gagal hit backend.",
+          ? "FE successfully hit backend."
+          : "FE failed to hit backend.",
         backendStatus: response.status,
         data,
       },
@@ -42,7 +42,7 @@ export async function GET() {
         message:
           error instanceof Error
             ? error.message
-            : "FE tidak bisa menghubungi backend.",
+            : "FE cannot contact backend.",
       },
       { status: 500 }
     )

@@ -22,6 +22,25 @@ services:
         max-file: "3"
     networks:
       - app
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app
 
   ipfs:
     image: ipfs/kubo:v0.32.1
@@ -133,3 +152,4 @@ networks:
 
 volumes:
   postgres_data:
+  minio_data:

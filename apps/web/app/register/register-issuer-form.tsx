@@ -50,19 +50,19 @@ export default function RegisterIssuerForm() {
       !departmentName ||
       !mspId
     ) {
-      setErrorMessage("Semua field wajib diisi.")
+      setErrorMessage("All fields are required.")
       setLoading(false)
       return
     }
 
     if (password.length < 8) {
-      setErrorMessage("Password minimal 8 karakter.")
+      setErrorMessage("Password must be at least 8 characters.")
       setLoading(false)
       return
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage("Konfirmasi password tidak sama.")
+      setErrorMessage("Passwords do not match.")
       setLoading(false)
       return
     }
@@ -91,18 +91,18 @@ export default function RegisterIssuerForm() {
       const data = (await response.json()) as RegisterResponse
 
       if (!response.ok) {
-        setErrorMessage(data.message || "Registrasi gagal.")
+        setErrorMessage(data.message || "Registration failed.")
         return
       }
 
-      setSuccessMessage("Registrasi issuer berhasil. Mengarahkan ke login...")
+      setSuccessMessage("Issuer registration successful. Redirecting to login...")
 
       setTimeout(() => {
         router.push("/login?registered=1")
       }, 900)
     } catch (error) {
       console.error(error)
-      setErrorMessage("Tidak dapat terhubung ke server.")
+      setErrorMessage("Cannot connect to server.")
     } finally {
       setLoading(false)
     }
@@ -112,12 +112,11 @@ export default function RegisterIssuerForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-          Registrasi Issuer
+          Issuer Registration
         </h2>
 
         <p className="mt-2 text-sm text-slate-600">
-          Buat akun admin lokal dan daftarkan institusi penerbit ke sistem
-          ledger.
+          Create a local admin account and register the issuer institution to the ledger system.
         </p>
       </div>
 
@@ -139,7 +138,7 @@ export default function RegisterIssuerForm() {
             htmlFor="name"
             className="text-sm font-semibold text-slate-700"
           >
-            Nama Admin
+            Admin Name
           </label>
 
           <input
@@ -147,7 +146,7 @@ export default function RegisterIssuerForm() {
             name="name"
             type="text"
             required
-            placeholder="Contoh: Admin Fakultas Teknik"
+            placeholder="Example: Admin Faculty of Engineering"
             autoComplete="name"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
@@ -186,7 +185,7 @@ export default function RegisterIssuerForm() {
             type="password"
             required
             minLength={8}
-            placeholder="Minimal 8 karakter"
+            placeholder="Minimum 8 characters"
             autoComplete="new-password"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
@@ -197,7 +196,7 @@ export default function RegisterIssuerForm() {
             htmlFor="confirmPassword"
             className="text-sm font-semibold text-slate-700"
           >
-            Konfirmasi Password
+            Confirm Password
           </label>
 
           <input
@@ -206,7 +205,7 @@ export default function RegisterIssuerForm() {
             type="password"
             required
             minLength={8}
-            placeholder="Ulangi password"
+            placeholder="Repeat password"
             autoComplete="new-password"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
@@ -225,7 +224,7 @@ export default function RegisterIssuerForm() {
             name="issuerId"
             type="text"
             required
-            placeholder="Contoh: ISSUER_01"
+            placeholder="Example: ISSUER_01"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm uppercase outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -235,7 +234,7 @@ export default function RegisterIssuerForm() {
             htmlFor="mspId"
             className="text-sm font-semibold text-slate-700"
           >
-            Organisasi Fabric
+            Fabric Organization
           </label>
 
           <select
@@ -246,7 +245,7 @@ export default function RegisterIssuerForm() {
             className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           >
             <option value="" disabled>
-              Pilih organisasi Fabric
+              Select Fabric organization
             </option>
             <option value="Org1MSP">Org1MSP</option>
             <option value="Org2MSP">Org2MSP</option>
@@ -258,7 +257,7 @@ export default function RegisterIssuerForm() {
             htmlFor="organizationName"
             className="text-sm font-semibold text-slate-700"
           >
-            Nama Organisasi / Universitas
+            Organization / University Name
           </label>
 
           <input
@@ -266,7 +265,7 @@ export default function RegisterIssuerForm() {
             name="organizationName"
             type="text"
             required
-            placeholder="Contoh: Universitas Diponegoro"
+            placeholder="Example: Universitas Diponegoro"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -276,7 +275,7 @@ export default function RegisterIssuerForm() {
             htmlFor="departmentName"
             className="text-sm font-semibold text-slate-700"
           >
-            Departemen / Fakultas
+            Department / Faculty
           </label>
 
           <input
@@ -284,7 +283,7 @@ export default function RegisterIssuerForm() {
             name="departmentName"
             type="text"
             required
-            placeholder="Contoh: Fakultas Teknik"
+            placeholder="Example: Faculty of Engineering"
             className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -295,7 +294,7 @@ export default function RegisterIssuerForm() {
         disabled={loading}
         className="w-full rounded-lg bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Memproses..." : "Daftar Issuer"}
+        {loading ? "Processing..." : "Register Issuer"}
       </button>
     </form>
   )

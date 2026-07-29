@@ -25,7 +25,7 @@ function getBackendBaseUrl() {
   const baseUrl = process.env.BACKEND_BASE_URL
 
   if (!baseUrl) {
-    throw new Error("BACKEND_BASE_URL belum diset.")
+    throw new Error("BACKEND_BASE_URL is not set.")
   }
 
   return baseUrl.replace(/\/$/, "")
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Nomor ijazah wajib diisi.",
+          message: "Certificate number is required.",
         },
         { status: 400 }
       )
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
         found: false,
         valid: false,
         data: null,
-        message: result.message ?? "Data ijazah tidak ditemukan.",
+        message: result.message ?? "Certificate data not found.",
       })
     }
 
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       success: true,
       found: true,
       valid: result.valid,
-      message: result.message ?? "Ijazah ditemukan.",
+      message: result.message ?? "Certificate found.",
       documentUrl,
       integrityStatus: result.integrityStatus,
       documentStatus: result.documentStatus,
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
         message:
           error instanceof Error
             ? error.message
-            : "Gagal memverifikasi ijazah.",
+            : "Failed to verify certificate.",
       },
       { status: 500 }
     )

@@ -136,11 +136,11 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
         <section className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
-              Data Ijazah
+              Certificates Data
             </h1>
             <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-slate-500">
               <p>
-                Login sebagai: <span className="font-semibold text-slate-700">{issuerName}</span>
+                Login as: <span className="font-semibold text-slate-700">{issuerName}</span>
               </p>
               {session.issuerId && (
                 <>
@@ -162,7 +162,7 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0px_10px_30px_-5px_rgba(37,99,235,0.08)]">
             <div className="mb-4 flex items-start justify-between">
               <span className="text-sm font-medium text-slate-600">
-                Total Ijazah
+                Total Certificates
               </span>
               <FileText className="h-5 w-5 text-slate-400" />
             </div>
